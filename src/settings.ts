@@ -28,9 +28,11 @@ function normalizeSettings(input: Partial<AppSettings> | null | undefined): AppS
   return {
     githubToken: (input?.githubToken || defaults.githubToken).trim(),
     minimaxApiKey: (input?.minimaxApiKey || defaults.minimaxApiKey).trim(),
-    primaryCliLabel: (input?.primaryCliLabel || defaults.primaryCliLabel).trim() || defaults.primaryCliLabel,
+    primaryCliLabel:
+      (input?.primaryCliLabel || defaults.primaryCliLabel).trim() || defaults.primaryCliLabel,
     primaryCliTemplate: primaryCliTemplate.trim(),
-    secondaryCliLabel: (input?.secondaryCliLabel || defaults.secondaryCliLabel).trim() || defaults.secondaryCliLabel,
+    secondaryCliLabel:
+      (input?.secondaryCliLabel || defaults.secondaryCliLabel).trim() || defaults.secondaryCliLabel,
     secondaryCliTemplate: secondaryCliTemplate.trim(),
   };
 }

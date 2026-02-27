@@ -6,9 +6,11 @@ Desktop app built with Tauri + React for tracking GitHub PR CI status, rerunning
 
 1. Go to **Releases**.
 2. Download the installer for your OS:
+
 - macOS: `.dmg`
 - Windows: `.msi`
 - Linux: `.AppImage` / `.deb` (depends on release target)
+
 3. Install and open `PR Tracker`.
 
 ## First-Time Setup

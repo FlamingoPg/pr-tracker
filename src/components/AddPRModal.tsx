@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { X, Github } from 'lucide-react';
+import { useState } from "react";
+import { X, Github } from "lucide-react";
 
 interface AddPRModalProps {
   onClose: () => void;
@@ -7,24 +7,24 @@ interface AddPRModalProps {
 }
 
 export default function AddPRModal({ onClose, onAdd }: AddPRModalProps) {
-  const [repo, setRepo] = useState('');
-  const [number, setNumber] = useState('');
-  const [error, setError] = useState('');
+  const [repo, setRepo] = useState("");
+  const [number, setNumber] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     // 验证 repo 格式 (owner/repo)
     const repoRegex = /^[\w-]+\/[\w-]+$/;
     if (!repoRegex.test(repo)) {
-      setError('Repository format should be: owner/repo');
+      setError("Repository format should be: owner/repo");
       return;
     }
 
     const prNumber = parseInt(number, 10);
     if (isNaN(prNumber) || prNumber <= 0) {
-      setError('PR number must be a positive integer');
+      setError("PR number must be a positive integer");
       return;
     }
 
@@ -33,7 +33,7 @@ export default function AddPRModal({ onClose, onAdd }: AddPRModalProps) {
 
   // 解析 GitHub URL
   const handlePaste = (e: React.ClipboardEvent) => {
-    const text = e.clipboardData.getData('text');
+    const text = e.clipboardData.getData("text");
     const match = text.match(/github\.com\/([^/]+\/[^/]+)\/pull\/(\d+)/);
     if (match) {
       e.preventDefault();
@@ -53,13 +53,12 @@ export default function AddPRModal({ onClose, onAdd }: AddPRModalProps) {
             </div>
             <div>
               <h2 className="text-lg font-semibold">Track New PR</h2>
-              <p className="text-xs text-github-text-secondary">Add a PR to monitor its CI status</p>
+              <p className="text-xs text-github-text-secondary">
+                Add a PR to monitor its CI status
+              </p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-          >
+          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -83,9 +82,7 @@ export default function AddPRModal({ onClose, onAdd }: AddPRModalProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">
-              PR Number
-            </label>
+            <label className="block text-sm font-medium mb-2">PR Number</label>
             <input
               type="text"
               value={number}

@@ -1,5 +1,13 @@
-import { GitPullRequest, ExternalLink, Clock, CheckCircle2, XCircle, AlertCircle, Play } from 'lucide-react';
-import { PRIcon } from '../types';
+import {
+  GitPullRequest,
+  ExternalLink,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  Play,
+} from "lucide-react";
+import { PRIcon } from "../types";
 
 interface PRListProps {
   prs: PRIcon[];
@@ -7,25 +15,24 @@ interface PRListProps {
 
 function getStatusIcon(status: string) {
   switch (status) {
-    case 'success':
+    case "success":
       return <CheckCircle2 className="w-5 h-5 text-github-green" />;
-    case 'failure':
+    case "failure":
       return <XCircle className="w-5 h-5 text-github-red" />;
-    case 'running':
+    case "running":
       return <Play className="w-5 h-5 text-github-yellow animate-pulse" />;
     default:
       return <AlertCircle className="w-5 h-5 text-github-text-secondary" />;
   }
 }
 
-
 function formatTime(isoString: string) {
   const date = new Date(isoString);
   const now = new Date();
   const diff = now.getTime() - date.getTime();
   const hours = Math.floor(diff / (1000 * 60 * 60));
-  
-  if (hours < 1) return 'just now';
+
+  if (hours < 1) return "just now";
   if (hours < 24) return `${hours}h ago`;
   return `${Math.floor(hours / 24)}d ago`;
 }
@@ -42,11 +49,14 @@ export default function PRList({ prs }: PRListProps) {
   }
 
   // 按仓库分组
-  const grouped = prs.reduce((acc, pr) => {
-    if (!acc[pr.repository]) acc[pr.repository] = [];
-    acc[pr.repository].push(pr);
-    return acc;
-  }, {} as Record<string, PRIcon[]>);
+  const grouped = prs.reduce(
+    (acc, pr) => {
+      if (!acc[pr.repository]) acc[pr.repository] = [];
+      acc[pr.repository].push(pr);
+      return acc;
+    },
+    {} as Record<string, PRIcon[]>
+  );
 
   return (
     <div className="space-y-6">
@@ -70,9 +80,7 @@ export default function PRList({ prs }: PRListProps) {
               >
                 <div className="flex items-start gap-4">
                   {/* Status Icon */}
-                  <div className="mt-1">
-                    {getStatusIcon(pr.ciStatus)}
-                  </div>
+                  <div className="mt-1">{getStatusIcon(pr.ciStatus)}</div>
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
@@ -82,14 +90,16 @@ export default function PRList({ prs }: PRListProps) {
                           <span className="text-sm text-github-blue hover:underline">
                             #{pr.number}
                           </span>
-                          <span className={`px-2 py-0.5 text-xs rounded-full border ${
-                            pr.state === 'open' 
-                              ? 'bg-github-green/10 text-github-green border-github-green/30' 
-                              : 'bg-purple-500/10 text-purple-400 border-purple-500/30'
-                          }`}>
+                          <span
+                            className={`px-2 py-0.5 text-xs rounded-full border ${
+                              pr.state === "open"
+                                ? "bg-github-green/10 text-github-green border-github-green/30"
+                                : "bg-purple-500/10 text-purple-400 border-purple-500/30"
+                            }`}
+                          >
                             {pr.state}
                           </span>
-                          {pr.ciStatus === 'failure' && (
+                          {pr.ciStatus === "failure" && (
                             <span className="px-2 py-0.5 text-xs rounded-full border bg-github-red/10 text-github-red border-github-red/30">
                               CI Failed
                             </span>
@@ -102,11 +112,14 @@ export default function PRList({ prs }: PRListProps) {
 
                       {/* Actions */}
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button 
+                        <button
                           className="p-1.5 hover:bg-white/10 rounded-md transition-colors"
                           onClick={(e) => {
                             e.stopPropagation();
-                            window.open(`https://github.com/${pr.repository}/pull/${pr.number}`, '_blank');
+                            window.open(
+                              `https://github.com/${pr.repository}/pull/${pr.number}`,
+                              "_blank"
+                            );
                           }}
                         >
                           <ExternalLink className="w-4 h-4" />
@@ -121,16 +134,16 @@ export default function PRList({ prs }: PRListProps) {
                           <div
                             key={check.id}
                             className={`flex items-center gap-1.5 px-2 py-1 rounded text-xs border ${
-                              check.conclusion === 'success'
-                                ? 'bg-github-green/10 text-github-green border-github-green/20'
-                                : check.conclusion === 'failure'
-                                ? 'bg-github-red/10 text-github-red border-github-red/20'
-                                : 'bg-github-yellow/10 text-github-yellow border-github-yellow/20'
+                              check.conclusion === "success"
+                                ? "bg-github-green/10 text-github-green border-github-green/20"
+                                : check.conclusion === "failure"
+                                  ? "bg-github-red/10 text-github-red border-github-red/20"
+                                  : "bg-github-yellow/10 text-github-yellow border-github-yellow/20"
                             }`}
                           >
-                            {check.conclusion === 'success' ? (
+                            {check.conclusion === "success" ? (
                               <CheckCircle2 className="w-3 h-3" />
-                            ) : check.conclusion === 'failure' ? (
+                            ) : check.conclusion === "failure" ? (
                               <XCircle className="w-3 h-3" />
                             ) : (
                               <Play className="w-3 h-3" />
@@ -153,8 +166,17 @@ export default function PRList({ prs }: PRListProps) {
                         <span>Updated {formatTime(pr.updatedAt)}</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className={pr.ciStatus === 'success' ? 'text-github-green' : pr.ciStatus === 'failure' ? 'text-github-red' : 'text-github-yellow'}>
-                          {pr.checks.filter(c => c.conclusion === 'success').length}/{pr.checks.length} checks passed
+                        <span
+                          className={
+                            pr.ciStatus === "success"
+                              ? "text-github-green"
+                              : pr.ciStatus === "failure"
+                                ? "text-github-red"
+                                : "text-github-yellow"
+                          }
+                        >
+                          {pr.checks.filter((c) => c.conclusion === "success").length}/
+                          {pr.checks.length} checks passed
                         </span>
                       </div>
                     </div>

@@ -5,17 +5,17 @@ export default {
     extend: {
       colors: {
         github: {
-          bg: '#0d1117',
-          border: '#30363d',
-          text: '#c9d1d9',
-          'text-secondary': '#8b949e',
-          green: '#238636',
-          red: '#da3633',
-          yellow: '#9e8c3c',
-          blue: '#58a6ff'
-        }
-      }
+          bg: "#0d1117",
+          border: "#30363d",
+          text: "#c9d1d9",
+          "text-secondary": "#8b949e",
+          green: "#238636",
+          red: "#da3633",
+          yellow: "#9e8c3c",
+          blue: "#58a6ff",
+        },
+      },
     },
   },
   plugins: [],
-}
+};

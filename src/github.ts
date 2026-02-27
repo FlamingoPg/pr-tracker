@@ -20,8 +20,13 @@ interface GitHubCheckRun {
   app?: { name?: string };
   status: "queued" | "in_progress" | "completed";
   conclusion:
-    | "success" | "failure" | "neutral" | "cancelled"
-    | "skipped" | "timed_out" | "action_required"
+    | "success"
+    | "failure"
+    | "neutral"
+    | "cancelled"
+    | "skipped"
+    | "timed_out"
+    | "action_required"
     | null;
   details_url: string | null;
 }
@@ -165,22 +170,15 @@ export async function fetchPRData(
 
 // ─── Fetch raw log for a single Actions job ────────────────────────────────
 
-export async function fetchJobLogs(
-  repo: string,
-  jobId: number,
-  token: string
-): Promise<string> {
+export async function fetchJobLogs(repo: string, jobId: number, token: string): Promise<string> {
   const [owner, repoName] = repo.split("/");
-  const res = await fetch(
-    `${API_BASE}/repos/${owner}/${repoName}/actions/jobs/${jobId}/logs`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "X-GitHub-Api-Version": "2022-11-28",
-      },
-      redirect: "follow",
-    }
-  );
+  const res = await fetch(`${API_BASE}/repos/${owner}/${repoName}/actions/jobs/${jobId}/logs`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "X-GitHub-Api-Version": "2022-11-28",
+    },
+    redirect: "follow",
+  });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const raw = await res.text();
   // Strip ANSI escape codes
@@ -288,11 +286,7 @@ export async function getWorkflowRunId(
 
 // ─── Rerun failed jobs ────────────────────────────────────────────────
 
-export async function rerunFailedJobs(
-  repo: string,
-  runId: number,
-  token: string
-): Promise<void> {
+export async function rerunFailedJobs(repo: string, runId: number, token: string): Promise<void> {
   const [owner, repoName] = repo.split("/");
   const res = await fetch(
     `${API_BASE}/repos/${owner}/${repoName}/actions/runs/${runId}/rerun-failed-jobs`,

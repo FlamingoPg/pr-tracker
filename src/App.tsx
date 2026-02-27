@@ -3,7 +3,14 @@ import ReactMarkdown from "react-markdown";
 import { open } from "@tauri-apps/plugin-shell";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow, LogicalSize } from "@tauri-apps/api/window";
-import { fetchPRData, fetchJobLogs, getWorkflowRunId, getFailedWorkflowRunIds, rerunFailedJobs, CIJob } from "./github";
+import {
+  fetchPRData,
+  fetchJobLogs,
+  getWorkflowRunId,
+  getFailedWorkflowRunIds,
+  rerunFailedJobs,
+  CIJob,
+} from "./github";
 import { analyzeFailure } from "./llm";
 import { AppSettings, loadSettings, saveSettings } from "./settings";
 import "./App.css";
@@ -32,29 +39,55 @@ const ONBOARDING_STORAGE_KEY = "pr_tracker_onboarding_seen_v1";
 // ─── Icons ─────────────────────────────────────────────────────────────────
 
 const RefreshIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
-    <path d="M21 3v5h-5"/>
-    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
-    <path d="M8 16H3v5"/>
+  <svg
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+    <path d="M21 3v5h-5" />
+    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+    <path d="M8 16H3v5" />
   </svg>
 );
 
 const ExternalIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-    <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+    <polyline points="15 3 21 3 21 9" />
+    <line x1="10" y1="14" x2="21" y2="3" />
   </svg>
 );
 
 const TrashIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="3 6 5 6 21 6"/>
-    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="3 6 5 6 21 6" />
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
   </svg>
 );
-
-
 
 // ─── Status Indicator ──────────────────────────────────────────────────────
 
@@ -69,8 +102,17 @@ function StatusIndicator({ status }: { status: string }) {
   if (status === "success") {
     return (
       <div className="status-icon success">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--success)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="20 6 9 17 4 12"/>
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="var(--success)"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polyline points="20 6 9 17 4 12" />
         </svg>
       </div>
     );
@@ -78,9 +120,18 @@ function StatusIndicator({ status }: { status: string }) {
   if (status === "failure") {
     return (
       <div className="status-icon failure">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--error)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"/>
-          <line x1="6" y1="6" x2="18" y2="18"/>
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="var(--error)"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
         </svg>
       </div>
     );
@@ -108,7 +159,9 @@ function SettingsModal({
   const [primaryCliLabel, setPrimaryCliLabel] = useState(initialSettings.primaryCliLabel);
   const [primaryCliTemplate, setPrimaryCliTemplate] = useState(initialSettings.primaryCliTemplate);
   const [secondaryCliLabel, setSecondaryCliLabel] = useState(initialSettings.secondaryCliLabel);
-  const [secondaryCliTemplate, setSecondaryCliTemplate] = useState(initialSettings.secondaryCliTemplate);
+  const [secondaryCliTemplate, setSecondaryCliTemplate] = useState(
+    initialSettings.secondaryCliTemplate
+  );
 
   return (
     <div className="native-modal" onClick={onClose}>
@@ -129,7 +182,9 @@ function SettingsModal({
               autoComplete="off"
             />
 
-            <label style={{ fontWeight: 600, marginTop: "8px" }}>MiniMax API Key (AI analysis)</label>
+            <label style={{ fontWeight: 600, marginTop: "8px" }}>
+              MiniMax API Key (AI analysis)
+            </label>
             <input
               className="add-url-input"
               type="password"
@@ -180,7 +235,8 @@ function SettingsModal({
             />
 
             <div style={{ fontSize: "12px", opacity: 0.8, marginTop: "2px" }}>
-              Available placeholders: <code>{"{context}"}</code>, <code>{"{repo}"}</code>, <code>{"{number}"}</code>, <code>{"{pr_url}"}</code>
+              Available placeholders: <code>{"{context}"}</code>, <code>{"{repo}"}</code>,{" "}
+              <code>{"{number}"}</code>, <code>{"{pr_url}"}</code>
             </div>
           </div>
 
@@ -269,18 +325,20 @@ function LogModal({
           )}
           {analysisError && <div className="error-text">AI 分析失败：{analysisError}</div>}
           {analysis && availableActions.length > 0 && (
-            <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
+            <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
               {availableActions.map((action, index) => (
                 <button
                   key={`${action.label}-${index}`}
                   className="external-link-btn"
-                  onClick={() => invoke("open_cli", {
-                    commandTemplate: action.template,
-                    context: analysis,
-                    repo,
-                    number,
-                    prUrl,
-                  })}
+                  onClick={() =>
+                    invoke("open_cli", {
+                      commandTemplate: action.template,
+                      context: analysis,
+                      repo,
+                      number,
+                      prUrl,
+                    })
+                  }
                 >
                   Run {action.label}
                 </button>
@@ -338,7 +396,25 @@ function OnboardingModal({
 
 // ─── PR Card ───────────────────────────────────────────────────────────────
 
-function PRCard({ pr, onRemove, onJobClick, onRerun, onRerunAll, showRerunAll, isRerunning, isRerunAllRunning }: { pr: PR; onRemove: () => void; onJobClick: (job: CIJob) => void; onRerun: (prId: number, runId?: number) => void; onRerunAll?: () => void; showRerunAll?: boolean; isRerunning?: boolean; isRerunAllRunning?: boolean }) {
+function PRCard({
+  pr,
+  onRemove,
+  onJobClick,
+  onRerun,
+  onRerunAll,
+  showRerunAll,
+  isRerunning,
+  isRerunAllRunning,
+}: {
+  pr: PR;
+  onRemove: () => void;
+  onJobClick: (job: CIJob) => void;
+  onRerun: (prId: number, runId?: number) => void;
+  onRerunAll?: () => void;
+  showRerunAll?: boolean;
+  isRerunning?: boolean;
+  isRerunAllRunning?: boolean;
+}) {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -348,9 +424,7 @@ function PRCard({ pr, onRemove, onJobClick, onRerun, onRerunAll, showRerunAll, i
 
         <div className="pr-details">
           <div className="pr-title-row">
-            <span className={`pr-title${pr.isLoading ? " loading" : ""}`}>
-              {pr.title}
-            </span>
+            <span className={`pr-title${pr.isLoading ? " loading" : ""}`}>{pr.title}</span>
             <span className="pr-updated">{pr.lastUpdated}</span>
           </div>
 
@@ -384,33 +458,43 @@ function PRCard({ pr, onRemove, onJobClick, onRerun, onRerunAll, showRerunAll, i
             </div>
           )}
 
-          {pr.ciJobs && pr.ciJobs.some(j => j.status === "failure") && (
-            <div style={{ marginTop: '8px' }}>
+          {pr.ciJobs && pr.ciJobs.some((j) => j.status === "failure") && (
+            <div style={{ marginTop: "8px" }}>
               <div className="job-chips">
-                {pr.ciJobs.filter(j => j.status === "failure").length > 3 && (
+                {pr.ciJobs.filter((j) => j.status === "failure").length > 3 && (
                   <span
                     className="job-chip job-chip-toggle"
-                    onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
-                    style={{ cursor: 'pointer', marginRight: '6px' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setExpanded(!expanded);
+                    }}
+                    style={{ cursor: "pointer", marginRight: "6px" }}
                   >
-                    {expanded ? '▼ 收起' : `▲ +${pr.ciJobs.filter(j => j.status === "failure").length - 3}`}
+                    {expanded
+                      ? "▼ 收起"
+                      : `▲ +${pr.ciJobs.filter((j) => j.status === "failure").length - 3}`}
                   </span>
                 )}
-                {pr.ciJobs.filter(j => j.status === "failure").slice(0, expanded ? undefined : 3).map((job, i) => (
-                  <span
-                    key={i}
-                    className="job-chip job-chip-failure"
-                    onClick={(e) => { e.stopPropagation(); onJobClick(job); }}
-                    style={{ cursor: 'pointer' }}
-                    title="点击查看 AI 分析"
-                  >
-                    {job.name}
-                  </span>
-                ))}
+                {pr.ciJobs
+                  .filter((j) => j.status === "failure")
+                  .slice(0, expanded ? undefined : 3)
+                  .map((job, i) => (
+                    <span
+                      key={i}
+                      className="job-chip job-chip-failure"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onJobClick(job);
+                      }}
+                      style={{ cursor: "pointer" }}
+                      title="点击查看 AI 分析"
+                    >
+                      {job.name}
+                    </span>
+                  ))}
               </div>
             </div>
           )}
-
         </div>
 
         <div className="pr-card-actions" onClick={(e) => e.stopPropagation()}>
@@ -438,19 +522,22 @@ function PRCard({ pr, onRemove, onJobClick, onRerun, onRerunAll, showRerunAll, i
               onClick={() => onRerunAll()}
               disabled={isRerunAllRunning}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                <path d="M3 3v5h5"/>
-                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
-                <path d="M16 16h5v5"/>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                <path d="M16 16h5v5" />
               </svg>
             </button>
           )}
-          <button
-            className="card-btn danger"
-            title="Stop tracking"
-            onClick={() => onRemove()}
-          >
+          <button className="card-btn danger" title="Stop tracking" onClick={() => onRemove()}>
             <TrashIcon />
           </button>
         </div>
@@ -465,31 +552,35 @@ function App() {
   // Load saved PRs from localStorage
   const [prs, setPrs] = useState<PR[]>(() => {
     try {
-      const saved = localStorage.getItem('tracked_prs');
+      const saved = localStorage.getItem("tracked_prs");
       if (saved) {
         return JSON.parse(saved);
       }
     } catch (e) {
-      console.error('Failed to load saved PRs:', e);
+      console.error("Failed to load saved PRs:", e);
     }
     return [];
   });
   const [urlInput, setUrlInput] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const isRefreshingRef = useRef(false);
-  const [logModal, setLogModal] = useState<{ repo: string; number: number; job: CIJob } | null>(null);
+  const [logModal, setLogModal] = useState<{ repo: string; number: number; job: CIJob } | null>(
+    null
+  );
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
   const [rerunningPrIds, setRerunningPrIds] = useState<Record<number, true>>({});
   const rerunningPrIdsRef = useRef<Record<number, true>>({});
   const [isRerunAllRunning, setIsRerunAllRunning] = useState(false);
   const isRerunAllRunningRef = useRef(false);
   const [darkMode, setDarkMode] = useState(() => {
-    return localStorage.getItem('theme') === 'dark';
+    return localStorage.getItem("theme") === "dark";
   });
   const [isFloating, setIsFloating] = useState(false);
   const [settings, setSettings] = useState<AppSettings>(() => loadSettings());
   const [showSettings, setShowSettings] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(() => localStorage.getItem(ONBOARDING_STORAGE_KEY) !== "seen");
+  const [showOnboarding, setShowOnboarding] = useState(
+    () => localStorage.getItem(ONBOARDING_STORAGE_KEY) !== "seen"
+  );
 
   const githubToken = settings.githubToken;
   const minimaxApiKey = settings.minimaxApiKey;
@@ -501,9 +592,9 @@ function App() {
   // Toggle body class for transparent background
   useEffect(() => {
     if (isFloating) {
-      document.body.classList.add('floating');
+      document.body.classList.add("floating");
     } else {
-      document.body.classList.remove('floating');
+      document.body.classList.remove("floating");
     }
   }, [isFloating]);
 
@@ -547,7 +638,7 @@ function App() {
       setStatusMsg(nextFloating ? "已开启浮窗模式" : "已关闭浮窗模式");
       setTimeout(() => setStatusMsg(null), 2000);
     } catch (e) {
-      console.error('Failed to toggle floating mode:', e);
+      console.error("Failed to toggle floating mode:", e);
       setStatusMsg(`浮窗模式失败: ${e}`);
     }
   }, [isFloating]);
@@ -587,7 +678,7 @@ function App() {
   // Save PRs to localStorage when they change
   useEffect(() => {
     // Only save minimal data (no runtime state like isLoading, error, runId)
-    const toSave = prs.map(pr => ({
+    const toSave = prs.map((pr) => ({
       id: pr.id,
       repo: pr.repo,
       number: pr.number,
@@ -599,62 +690,70 @@ function App() {
       additions: pr.additions,
       deletions: pr.deletions,
     }));
-    localStorage.setItem('tracked_prs', JSON.stringify(toSave));
+    localStorage.setItem("tracked_prs", JSON.stringify(toSave));
   }, [prs]);
 
   // Apply dark mode
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
-    localStorage.setItem('theme', darkMode ? 'dark' : 'light');
+    document.documentElement.setAttribute("data-theme", darkMode ? "dark" : "light");
+    localStorage.setItem("theme", darkMode ? "dark" : "light");
   }, [darkMode]);
 
   // Ref so the auto-refresh interval always reads the latest PR list
   // without needing to re-create the interval on every state change
   const prsRef = useRef<PR[]>(prs);
-  useEffect(() => { prsRef.current = prs; });
+  useEffect(() => {
+    prsRef.current = prs;
+  });
 
   const hasRunning = prs.some((p) => p.ciStatus === "running");
 
-  const grouped = prs.reduce((acc, pr) => {
-    if (!acc[pr.repo]) acc[pr.repo] = [];
-    acc[pr.repo].push(pr);
-    return acc;
-  }, {} as Record<string, PR[]>);
+  const grouped = prs.reduce(
+    (acc, pr) => {
+      if (!acc[pr.repo]) acc[pr.repo] = [];
+      acc[pr.repo].push(pr);
+      return acc;
+    },
+    {} as Record<string, PR[]>
+  );
 
   // ── fetch one PR and update state ────────────────────────────────────────
-  const fetchAndUpdatePR = useCallback(async (pr: PR) => {
-    if (!githubToken) return;
+  const fetchAndUpdatePR = useCallback(
+    async (pr: PR) => {
+      if (!githubToken) return;
 
-    setPrs((prev) =>
-      prev.map((p) => p.id === pr.id ? { ...p, isLoading: true, error: undefined } : p)
-    );
+      setPrs((prev) =>
+        prev.map((p) => (p.id === pr.id ? { ...p, isLoading: true, error: undefined } : p))
+      );
 
-    try {
-      const [data, runId] = await Promise.all([
-        fetchPRData(pr.repo, pr.number, githubToken),
-        getWorkflowRunId(pr.repo, pr.number, githubToken),
-      ]);
-      setPrs((prev) =>
-        prev.map((p) =>
-          p.id === pr.id ? { ...p, ...data, runId: runId || undefined, isLoading: false, error: undefined } : p
-        )
-      );
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      setPrs((prev) =>
-        prev.map((p) =>
-          p.id === pr.id ? { ...p, isLoading: false, error: message } : p
-        )
-      );
-    }
-  }, [githubToken]);
+      try {
+        const [data, runId] = await Promise.all([
+          fetchPRData(pr.repo, pr.number, githubToken),
+          getWorkflowRunId(pr.repo, pr.number, githubToken),
+        ]);
+        setPrs((prev) =>
+          prev.map((p) =>
+            p.id === pr.id
+              ? { ...p, ...data, runId: runId || undefined, isLoading: false, error: undefined }
+              : p
+          )
+        );
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        setPrs((prev) =>
+          prev.map((p) => (p.id === pr.id ? { ...p, isLoading: false, error: message } : p))
+        );
+      }
+    },
+    [githubToken]
+  );
 
   // Auto-refresh saved PRs on first load
   useEffect(() => {
     if (githubToken && prs.length > 0) {
       // Refresh all saved PRs after a short delay
       const timer = setTimeout(() => {
-        prs.forEach(pr => fetchAndUpdatePR(pr));
+        prs.forEach((pr) => fetchAndUpdatePR(pr));
       }, 1000);
       return () => clearTimeout(timer);
     }
@@ -678,36 +777,42 @@ function App() {
   }, [fetchAndUpdatePR]);
 
   // ── add PR from a parsed repo + number ──────────────────────────────────
-  const addPR = useCallback((repo: string, number: number) => {
-    // Check if already tracking this PR
-    const exists = prs.some((p) => p.repo === repo && p.number === number);
-    if (exists) return;
+  const addPR = useCallback(
+    (repo: string, number: number) => {
+      // Check if already tracking this PR
+      const exists = prs.some((p) => p.repo === repo && p.number === number);
+      if (exists) return;
 
-    const newPR: PR = {
-      id: Date.now(),
-      repo,
-      number,
-      title: "Loading…",
-      author: "…",
-      state: "open",
-      ciStatus: "pending",
-      lastUpdated: "just now",
-      isLoading: true,
-    };
-    setPrs((prev) => [newPR, ...prev]);
-    setUrlInput("");
-    fetchAndUpdatePR(newPR);
-  }, [fetchAndUpdatePR, prs]);
+      const newPR: PR = {
+        id: Date.now(),
+        repo,
+        number,
+        title: "Loading…",
+        author: "…",
+        state: "open",
+        ciStatus: "pending",
+        lastUpdated: "just now",
+        isLoading: true,
+      };
+      setPrs((prev) => [newPR, ...prev]);
+      setUrlInput("");
+      fetchAndUpdatePR(newPR);
+    },
+    [fetchAndUpdatePR, prs]
+  );
 
   // ── parse GitHub PR URL and track ─────────────────────────────────────────
-  const parseAndTrack = useCallback((text: string) => {
-    const match = text.match(/github\.com\/([^/\s]+\/[^/\s]+)\/pull\/(\d+)/);
-    if (match) {
-      addPR(match[1], parseInt(match[2]));
-      return true;
-    }
-    return false;
-  }, [addPR]);
+  const parseAndTrack = useCallback(
+    (text: string) => {
+      const match = text.match(/github\.com\/([^/\s]+\/[^/\s]+)\/pull\/(\d+)/);
+      if (match) {
+        addPR(match[1], parseInt(match[2]));
+        return true;
+      }
+      return false;
+    },
+    [addPR]
+  );
 
   // ── auto-refresh: 15s when any CI is running, 30s otherwise ──────────────
   useEffect(() => {
@@ -737,63 +842,70 @@ function App() {
     setIsRerunAllRunning(isRunning);
   }, []);
 
-  const handleRerun = useCallback(async (prId: number, _runId?: number) => {
-    if (!githubToken) {
-      setStatusMsg("错误: No GitHub token");
-      return;
-    }
-    const pr = prsRef.current.find((p) => p.id === prId);
-    if (!pr) {
-      setStatusMsg("错误: PR not found");
-      return;
-    }
-    if (rerunningPrIdsRef.current[prId]) {
-      setStatusMsg(`PR #${pr.number} 正在 rerun，请稍候...`);
-      setTimeout(() => setStatusMsg(null), 1800);
-      return;
-    }
-    setPrRerunning(prId, true);
-
-    try {
-      setStatusMsg(`正在获取 PR #${pr.number} 的失败 workflow...`);
-      const failedRunIds = await getFailedWorkflowRunIds(pr.repo, pr.number, githubToken);
-      if (failedRunIds.length === 0) {
-        setStatusMsg(`错误: PR #${pr.number} 未找到可 rerun 的失败 workflow`);
+  const handleRerun = useCallback(
+    async (prId: number, _runId?: number) => {
+      if (!githubToken) {
+        setStatusMsg("错误: No GitHub token");
         return;
       }
+      const pr = prsRef.current.find((p) => p.id === prId);
+      if (!pr) {
+        setStatusMsg("错误: PR not found");
+        return;
+      }
+      if (rerunningPrIdsRef.current[prId]) {
+        setStatusMsg(`PR #${pr.number} 正在 rerun，请稍候...`);
+        setTimeout(() => setStatusMsg(null), 1800);
+        return;
+      }
+      setPrRerunning(prId, true);
 
-      setStatusMsg(`PR #${pr.number} 检测到 ${failedRunIds.length} 个失败 workflow，正在 rerun...`);
-      const errors: string[] = [];
-      let successCount = 0;
-
-      for (const workflowRunId of failedRunIds) {
-        try {
-          await rerunFailedJobs(pr.repo, workflowRunId, githubToken);
-          successCount += 1;
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err);
-          errors.push(`run ${workflowRunId}: ${msg}`);
+      try {
+        setStatusMsg(`正在获取 PR #${pr.number} 的失败 workflow...`);
+        const failedRunIds = await getFailedWorkflowRunIds(pr.repo, pr.number, githubToken);
+        if (failedRunIds.length === 0) {
+          setStatusMsg(`错误: PR #${pr.number} 未找到可 rerun 的失败 workflow`);
+          return;
         }
-      }
 
-      if (successCount === 0) {
-        throw new Error(errors[0] || "所有失败 workflow 触发 rerun 失败");
-      }
+        setStatusMsg(
+          `PR #${pr.number} 检测到 ${failedRunIds.length} 个失败 workflow，正在 rerun...`
+        );
+        const errors: string[] = [];
+        let successCount = 0;
 
-      if (errors.length > 0) {
-        setStatusMsg(`PR #${pr.number} 已触发 ${successCount}/${failedRunIds.length} 个 rerun（部分失败）`);
-      } else {
-        setStatusMsg(`PR #${pr.number} 已触发 ${successCount} 个失败 workflow rerun`);
+        for (const workflowRunId of failedRunIds) {
+          try {
+            await rerunFailedJobs(pr.repo, workflowRunId, githubToken);
+            successCount += 1;
+          } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            errors.push(`run ${workflowRunId}: ${msg}`);
+          }
+        }
+
+        if (successCount === 0) {
+          throw new Error(errors[0] || "所有失败 workflow 触发 rerun 失败");
+        }
+
+        if (errors.length > 0) {
+          setStatusMsg(
+            `PR #${pr.number} 已触发 ${successCount}/${failedRunIds.length} 个 rerun（部分失败）`
+          );
+        } else {
+          setStatusMsg(`PR #${pr.number} 已触发 ${successCount} 个失败 workflow rerun`);
+        }
+        setTimeout(() => fetchAndUpdatePR(pr), 2000);
+        setTimeout(() => setStatusMsg(null), 3000);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        setStatusMsg(`错误: ${msg}`);
+      } finally {
+        setPrRerunning(prId, false);
       }
-      setTimeout(() => fetchAndUpdatePR(pr), 2000);
-      setTimeout(() => setStatusMsg(null), 3000);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      setStatusMsg(`错误: ${msg}`);
-    } finally {
-      setPrRerunning(prId, false);
-    }
-  }, [githubToken, fetchAndUpdatePR, setPrRerunning]);
+    },
+    [githubToken, fetchAndUpdatePR, setPrRerunning]
+  );
 
   const rerunAllFailed = useCallback(async () => {
     if (isRerunAllRunningRef.current) {
@@ -803,7 +915,7 @@ function App() {
     }
     setRerunAllRunning(true);
     setStatusMsg("开始 rerun...");
-    const failedPRs = prsRef.current.filter(p => p.ciStatus === "failure");
+    const failedPRs = prsRef.current.filter((p) => p.ciStatus === "failure");
     try {
       if (failedPRs.length === 0) {
         setStatusMsg("没有可 rerun 的失败 PR");
@@ -824,102 +936,136 @@ function App() {
   }, [handleRerun, setRerunAllRunning]);
 
   const counts = {
-    total:   prs.length,
+    total: prs.length,
     running: prs.filter((p) => p.ciStatus === "running").length,
-    failed:  prs.filter((p) => p.ciStatus === "failure").length,
+    failed: prs.filter((p) => p.ciStatus === "failure").length,
   };
 
   return (
-    <div className={`app${isFloating ? ' floating' : ''}`}>
-
+    <div className={`app${isFloating ? " floating" : ""}`}>
       {/* ── Header ── */}
-      {!isFloating && (<header className="app-header">
-        <div className="header-inner">
-          <div className="logo">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" fill="#24292f"/>
-            </svg>
-            <div>
-              <div className="logo-name">PR Tracker</div>
-              <div className="logo-sub">GitHub CI Monitor</div>
-            </div>
-          </div>
-
-          <div className="header-stats">
-            <div className="hstat">
-              <span className="hstat-dot" />
-              <span className="hstat-num">{counts.total}</span>
-              <span className="hstat-label">tracking</span>
-            </div>
-            {counts.running > 0 && (
-              <div className="hstat warning">
-                <span className="hstat-dot pulsing" />
-                <span className="hstat-num">{counts.running}</span>
-                <span className="hstat-label">running</span>
+      {!isFloating && (
+        <header className="app-header">
+          <div className="header-inner">
+            <div className="logo">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
+                  fill="#24292f"
+                />
+              </svg>
+              <div>
+                <div className="logo-name">PR Tracker</div>
+                <div className="logo-sub">GitHub CI Monitor</div>
               </div>
-            )}
-            {counts.failed > 0 && (
-              <div className="hstat error">
+            </div>
+
+            <div className="header-stats">
+              <div className="hstat">
                 <span className="hstat-dot" />
-                <span className="hstat-num">{counts.failed}</span>
-                <span className="hstat-label">failed</span>
+                <span className="hstat-num">{counts.total}</span>
+                <span className="hstat-label">tracking</span>
               </div>
-            )}
-          </div>
-
-          <button
-            className={`btn-refresh${isRefreshing ? " spin" : ""}`}
-            onClick={refreshAll}
-            disabled={isRefreshing}
-            title="Refresh all"
-          >
-            <RefreshIcon />
-            Refresh
-          </button>
-          <div className="mode-toggles">
-            <button
-              className="theme-toggle"
-              onClick={() => setShowSettings(true)}
-              title="Open settings"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="3"/>
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 .6 1.65 1.65 0 0 0-.33 1V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1-.6 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-.6-1 1.65 1.65 0 0 0-1-.33H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 8a1.65 1.65 0 0 0-.6-1 1.65 1.65 0 0 0-1-.33H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 2a1.65 1.65 0 0 0 1-.6 1.65 1.65 0 0 0 .33-1V0a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 12 1.6a1.65 1.65 0 0 0 1-.6 1.65 1.65 0 0 0 .33-1V0a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 19.4 2a1.65 1.65 0 0 0 .6 1 1.65 1.65 0 0 0 1 .33H21a2 2 0 1 1 0 4h-.09A1.65 1.65 0 0 0 19.4 8a1.65 1.65 0 0 0 .6 1 1.65 1.65 0 0 0 1 .33H21a2 2 0 1 1 0 4h-.09A1.65 1.65 0 0 0 19.4 15z"/>
-              </svg>
-            </button>
-            <button
-              className="theme-toggle"
-              onClick={() => setDarkMode(!darkMode)}
-              title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              {darkMode ? (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="5"/>
-                  <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-                </svg>
-              ) : (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                </svg>
+              {counts.running > 0 && (
+                <div className="hstat warning">
+                  <span className="hstat-dot pulsing" />
+                  <span className="hstat-num">{counts.running}</span>
+                  <span className="hstat-label">running</span>
+                </div>
               )}
-            </button>
+              {counts.failed > 0 && (
+                <div className="hstat error">
+                  <span className="hstat-dot" />
+                  <span className="hstat-num">{counts.failed}</span>
+                  <span className="hstat-label">failed</span>
+                </div>
+              )}
+            </div>
+
             <button
-              className="theme-toggle"
-              onClick={toggleFloating}
-              title={isFloating ? "Exit floating mode" : "Enter floating mode (always on top)"}
-              style={{ background: isFloating ? 'var(--primary)' : undefined, color: isFloating ? 'white' : undefined }}
+              className={`btn-refresh${isRefreshing ? " spin" : ""}`}
+              onClick={refreshAll}
+              disabled={isRefreshing}
+              title="Refresh all"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="3" width="18" height="18" rx="2"/>
-                <path d="M9 3v18M3 9h18"/>
-              </svg>
+              <RefreshIcon />
+              Refresh
             </button>
+            <div className="mode-toggles">
+              <button
+                className="theme-toggle"
+                onClick={() => setShowSettings(true)}
+                title="Open settings"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 .6 1.65 1.65 0 0 0-.33 1V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1-.6 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-.6-1 1.65 1.65 0 0 0-1-.33H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 8a1.65 1.65 0 0 0-.6-1 1.65 1.65 0 0 0-1-.33H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 2a1.65 1.65 0 0 0 1-.6 1.65 1.65 0 0 0 .33-1V0a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 12 1.6a1.65 1.65 0 0 0 1-.6 1.65 1.65 0 0 0 .33-1V0a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 19.4 2a1.65 1.65 0 0 0 .6 1 1.65 1.65 0 0 0 1 .33H21a2 2 0 1 1 0 4h-.09A1.65 1.65 0 0 0 19.4 8a1.65 1.65 0 0 0 .6 1 1.65 1.65 0 0 0 1 .33H21a2 2 0 1 1 0 4h-.09A1.65 1.65 0 0 0 19.4 15z" />
+                </svg>
+              </button>
+              <button
+                className="theme-toggle"
+                onClick={() => setDarkMode(!darkMode)}
+                title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+              >
+                {darkMode ? (
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <circle cx="12" cy="12" r="5" />
+                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                  </svg>
+                ) : (
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                  </svg>
+                )}
+              </button>
+              <button
+                className="theme-toggle"
+                onClick={toggleFloating}
+                title={isFloating ? "Exit floating mode" : "Enter floating mode (always on top)"}
+                style={{
+                  background: isFloating ? "var(--primary)" : undefined,
+                  color: isFloating ? "white" : undefined,
+                }}
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <path d="M9 3v18M3 9h18" />
+                </svg>
+              </button>
+            </div>
           </div>
-        </div>
-      </header>)}
+        </header>
+      )}
 
-      <main className={`app-main${isFloating ? ' floating' : ''}`}>
-
+      <main className={`app-main${isFloating ? " floating" : ""}`}>
         {/* Floating mode: show simple view */}
         {isFloating ? (
           <div className="floating-view">
@@ -962,7 +1108,8 @@ function App() {
             {!githubToken && (
               <div className="no-token-banner">
                 <span>
-                  No GitHub token configured. Open Settings and paste a token with Pull Requests + Checks read permissions.
+                  No GitHub token configured. Open Settings and paste a token with Pull Requests +
+                  Checks read permissions.
                 </span>
                 <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                   <button className="external-link-btn" onClick={() => setShowSettings(true)}>
@@ -981,11 +1128,7 @@ function App() {
             )}
 
             {/* ── Status message ── */}
-            {statusMsg && (
-              <div className="status-toast">
-                {statusMsg}
-              </div>
-            )}
+            {statusMsg && <div className="status-toast">{statusMsg}</div>}
 
             {/* ── Add PR ── */}
             <div className="add-bar">
@@ -1007,10 +1150,13 @@ function App() {
 
             {/* ── PR List ── */}
             {prs.length === 0 ? (
-              <div className="empty-state" style={{ marginTop: '60px' }}>
+              <div className="empty-state" style={{ marginTop: "60px" }}>
                 <div className="empty-icon-wrap">
                   <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" fill="#24292f"/>
+                    <path
+                      d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
+                      fill="#24292f"
+                    />
                   </svg>
                 </div>
                 <p className="empty-title">No PRs tracked yet</p>
@@ -1030,7 +1176,9 @@ function App() {
                           key={pr.id}
                           pr={pr}
                           onRemove={() => removePR(pr.id)}
-                          onJobClick={(job) => setLogModal({ repo: pr.repo, number: pr.number, job })}
+                          onJobClick={(job) =>
+                            setLogModal({ repo: pr.repo, number: pr.number, job })
+                          }
                           onRerun={handleRerun}
                           onRerunAll={rerunAllFailed}
                           showRerunAll={idx === 0 && repoPRs.some((p) => p.ciStatus === "failure")}
@@ -1045,7 +1193,6 @@ function App() {
             )}
           </>
         )}
-
       </main>
 
       {logModal && (
@@ -1067,10 +1214,7 @@ function App() {
         />
       )}
       {showOnboarding && !githubToken && (
-        <OnboardingModal
-          onOpenSettings={openSettingsFromOnboarding}
-          onClose={closeOnboarding}
-        />
+        <OnboardingModal onOpenSettings={openSettingsFromOnboarding} onClose={closeOnboarding} />
       )}
     </div>
   );
