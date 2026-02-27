@@ -286,26 +286,72 @@ function LogModal({
   const prUrl = `https://github.com/${repo}/pull/${number}`;
   const availableActions = cliActions.filter((item) => item.template.trim().length > 0);
   const [analysis, setAnalysis] = useState<string | null>(null);
+  const [cliContext, setCliContext] = useState<string | null>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
 
-  // Auto-fetch logs and analyze on mount
+  // Always fetch logs for CLI context; AI analysis is optional when MiniMax key exists.
   useEffect(() => {
-    if (!githubToken || !job.jobId) {
-      setAnalysisError(job.jobId ? "No GitHub token configured" : "Job ID not available");
+    const jobId = job.jobId;
+    if (!githubToken || !jobId) {
+      setAnalysisError(jobId ? "No GitHub token configured" : "Job ID not available");
+      setCliContext(null);
       return;
     }
-    if (!minimaxApiKey) {
-      setAnalysisError("No MiniMax API key configured");
-      return;
-    }
-    setAnalysisLoading(true);
-    fetchJobLogs(repo, job.jobId, githubToken)
-      .then((text) => analyzeFailure(text, job.name, minimaxApiKey))
-      .then(setAnalysis)
-      .catch((e) => setAnalysisError(e.message))
-      .finally(() => setAnalysisLoading(false));
-  }, [repo, job, githubToken, minimaxApiKey]);
+    let cancelled = false;
+
+    const load = async () => {
+      setAnalysisLoading(true);
+      setAnalysis(null);
+      setAnalysisError(null);
+      setCliContext(null);
+
+      try {
+        const logs = await fetchJobLogs(repo, jobId, githubToken);
+        const fallbackContext =
+          `CI job "${job.name}" failed. Analyze the root cause and propose concrete fixes.\n\n` +
+          logs;
+
+        if (!cancelled) {
+          setCliContext(fallbackContext);
+        }
+
+        if (!minimaxApiKey) {
+          if (!cancelled) {
+            setAnalysisError("MiniMax key is not configured. You can still run CLI analysis below.");
+          }
+          return;
+        }
+
+        try {
+          const aiText = await analyzeFailure(logs, job.name, minimaxApiKey);
+          if (!cancelled) {
+            setAnalysis(aiText);
+            setCliContext(aiText);
+          }
+        } catch (e) {
+          if (!cancelled) {
+            const msg = e instanceof Error ? e.message : String(e);
+            setAnalysisError(`AI analysis failed (${msg}). You can still run CLI analysis below.`);
+          }
+        }
+      } catch (e) {
+        if (!cancelled) {
+          const msg = e instanceof Error ? e.message : String(e);
+          setAnalysisError(msg);
+        }
+      } finally {
+        if (!cancelled) {
+          setAnalysisLoading(false);
+        }
+      }
+    };
+
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [repo, job.jobId, job.name, githubToken, minimaxApiKey]);
 
   // 只显示 AI 分析结果，隐藏原始日志
   return (
@@ -323,8 +369,8 @@ function LogModal({
               <ReactMarkdown>{analysis}</ReactMarkdown>
             </div>
           )}
-          {analysisError && <div className="error-text">AI 分析失败：{analysisError}</div>}
-          {analysis && availableActions.length > 0 && (
+          {analysisError && <div className="error-text">{analysisError}</div>}
+          {cliContext && availableActions.length > 0 && (
             <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
               {availableActions.map((action, index) => (
                 <button
@@ -333,7 +379,7 @@ function LogModal({
                   onClick={() =>
                     invoke("open_cli", {
                       commandTemplate: action.template,
-                      context: analysis,
+                      context: cliContext,
                       repo,
                       number,
                       prUrl,
