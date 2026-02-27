@@ -34,6 +34,10 @@ interface PR {
   isLoading?: boolean;
 }
 
+interface RefreshOptions {
+  showLoading?: boolean;
+}
+
 const ONBOARDING_STORAGE_KEY = "pr_tracker_onboarding_seen_v1";
 
 // ─── Icons ─────────────────────────────────────────────────────────────────
@@ -629,6 +633,8 @@ function App() {
   const [showOnboarding, setShowOnboarding] = useState(
     () => localStorage.getItem(ONBOARDING_STORAGE_KEY) !== "seen"
   );
+  const didInitialRefreshRef = useRef(false);
+  const inFlightFetchesRef = useRef<Record<number, Promise<void>>>({});
 
   const githubToken = settings.githubToken;
   const minimaxApiKey = settings.minimaxApiKey;
@@ -767,45 +773,57 @@ function App() {
 
   // ── fetch one PR and update state ────────────────────────────────────────
   const fetchAndUpdatePR = useCallback(
-    async (pr: PR) => {
-      if (!githubToken) return;
+    (pr: PR, options?: RefreshOptions): Promise<void> => {
+      if (!githubToken) return Promise.resolve();
 
-      setPrs((prev) =>
-        prev.map((p) => (p.id === pr.id ? { ...p, isLoading: true, error: undefined } : p))
-      );
+      const existing = inFlightFetchesRef.current[pr.id];
+      if (existing) return existing;
 
-      try {
-        const [data, runId] = await Promise.all([
-          fetchPRData(pr.repo, pr.number, githubToken),
-          getWorkflowRunId(pr.repo, pr.number, githubToken),
-        ]);
+      const showLoading = options?.showLoading ?? true;
+      if (showLoading) {
         setPrs((prev) =>
-          prev.map((p) =>
-            p.id === pr.id
-              ? { ...p, ...data, runId: runId || undefined, isLoading: false, error: undefined }
-              : p
-          )
-        );
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        setPrs((prev) =>
-          prev.map((p) => (p.id === pr.id ? { ...p, isLoading: false, error: message } : p))
+          prev.map((p) => (p.id === pr.id ? { ...p, isLoading: true, error: undefined } : p))
         );
       }
+
+      const task = (async () => {
+        try {
+          const [data, runId] = await Promise.all([
+            fetchPRData(pr.repo, pr.number, githubToken),
+            getWorkflowRunId(pr.repo, pr.number, githubToken),
+          ]);
+          setPrs((prev) =>
+            prev.map((p) =>
+              p.id === pr.id
+                ? { ...p, ...data, runId: runId || undefined, isLoading: false, error: undefined }
+                : p
+            )
+          );
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          setPrs((prev) =>
+            prev.map((p) => (p.id === pr.id ? { ...p, isLoading: false, error: message } : p))
+          );
+        } finally {
+          delete inFlightFetchesRef.current[pr.id];
+        }
+      })();
+
+      inFlightFetchesRef.current[pr.id] = task;
+      return task;
     },
     [githubToken]
   );
 
-  // Auto-refresh saved PRs on first load
+  // Auto-refresh saved PRs once on first load (avoid re-trigger loops on prs updates)
   useEffect(() => {
-    if (githubToken && prs.length > 0) {
-      // Refresh all saved PRs after a short delay
-      const timer = setTimeout(() => {
-        prs.forEach((pr) => fetchAndUpdatePR(pr));
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [githubToken, prs, fetchAndUpdatePR]);
+    if (!githubToken || didInitialRefreshRef.current || prsRef.current.length === 0) return;
+    didInitialRefreshRef.current = true;
+    const timer = setTimeout(() => {
+      prsRef.current.forEach((pr) => void fetchAndUpdatePR(pr, { showLoading: false }));
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [githubToken, fetchAndUpdatePR]);
 
   // ── refresh all tracked PRs ───────────────────────────────────────────────
   const refreshAll = useCallback(async () => {
@@ -867,7 +885,7 @@ function App() {
     if (!githubToken) return;
     const ms = hasRunning ? 15_000 : 30_000;
     const timer = setInterval(() => {
-      prsRef.current.forEach((pr) => fetchAndUpdatePR(pr));
+      prsRef.current.forEach((pr) => void fetchAndUpdatePR(pr, { showLoading: false }));
     }, ms);
     return () => clearInterval(timer);
   }, [hasRunning, fetchAndUpdatePR]);
