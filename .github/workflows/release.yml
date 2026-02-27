@@ -24,6 +24,12 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Sync app version from tag
+        run: |
+          node -e 'const fs=require("fs");const tag=process.env.GITHUB_REF_NAME||"";const version=tag.replace(/^v/,"");if(!version){throw new Error(`Invalid tag: ${tag}`);}for(const file of["package.json","src-tauri/tauri.conf.json"]){const data=JSON.parse(fs.readFileSync(file,"utf8"));data.version=version;fs.writeFileSync(file,JSON.stringify(data,null,2)+"\n");}console.log(`Version synced to ${version}`);'
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+
       - name: Install JS dependencies
         run: npm ci
 
