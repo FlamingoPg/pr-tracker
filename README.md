@@ -32,8 +32,8 @@ For stable public versions:
 2. Download the installer for your OS:
 
 - macOS: `.dmg`
-- Windows: `.msi`
-- Linux: `.AppImage` / `.deb` (depends on release target)
+
+Current workflow builds macOS artifacts only.
 
 3. Install and open `PR Tracker`.
 
