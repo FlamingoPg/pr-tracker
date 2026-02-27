@@ -318,7 +318,9 @@ function LogModal({
 
         if (!minimaxApiKey) {
           if (!cancelled) {
-            setAnalysisError("MiniMax key is not configured. You can still run CLI analysis below.");
+            setAnalysisError(
+              "MiniMax key is not configured. You can still run CLI analysis below."
+            );
           }
           return;
         }
