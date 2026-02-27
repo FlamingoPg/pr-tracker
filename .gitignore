@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.vite/
+src-tauri/target/
+.claude/
+AGENTS.md
+
+# Environment — never commit your token
+.env
+.env.local
+.env.*.local
+
+.DS_Store
+Thumbs.db
