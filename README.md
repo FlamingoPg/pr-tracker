@@ -26,6 +26,8 @@ Typical input example:
 
 ## One-Click Install
 
+For stable public versions:
+
 1. Go to **Releases**.
 2. Download the installer for your OS:
 
@@ -34,6 +36,12 @@ Typical input example:
 - Linux: `.AppImage` / `.deb` (depends on release target)
 
 3. Install and open `PR Tracker`.
+
+For every push to `main` (automatic packaging via GitHub Actions):
+
+1. Open the **Actions** tab and select the latest `Package` workflow run.
+2. Download the uploaded artifact for your platform.
+3. Extract and install from the bundle files.
 
 ## First-Time Setup
 
