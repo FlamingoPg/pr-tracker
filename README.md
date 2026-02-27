@@ -1,6 +1,28 @@
 # PR Tracker
 
-Desktop app built with Tauri + React for tracking GitHub PR CI status, rerunning failed workflows, and analyzing failed jobs.
+PR Tracker is a **vibe coding** desktop project built with Tauri + React.
+
+It is primarily used to observe **sglang** PR status (CI runs, failed jobs, rerun actions), and it also works for PRs from any other GitHub repository.
+
+## Key Setup (Do This First)
+
+Before using the app, open **Settings** (gear icon) and add:
+
+- `GitHub Token` (required)
+  - Create one at: `https://github.com/settings/tokens`
+  - Minimum recommended permissions:
+    - Pull requests: Read
+    - Checks: Read
+    - Actions: Read (and Write if you want to use rerun actions)
+- `MiniMax API Key` (optional, only for AI log analysis)
+  - Get one from: `https://platform.minimaxi.com`
+
+If MiniMax key is empty, PR tracking still works and CLI actions can still be launched.
+
+Typical input example:
+
+- `https://github.com/sgl-project/sglang/pull/18902`
+- `https://github.com/<owner>/<repo>/pull/<number>`
 
 ## One-Click Install
 
@@ -24,6 +46,12 @@ You can also open **Settings** (gear icon) manually and configure:
   - supported placeholders: `{context}`, `{repo}`, `{number}`, `{pr_url}`
 
 Credentials are not auto-imported from `.env` anymore; users configure them explicitly in-app.
+
+## What This Is For
+
+- Main use case: monitor `sgl-project/sglang` pull requests during development and review.
+- Also supported: monitor any GitHub PR by pasting the PR URL.
+- Optional AI assistance: analyze failed job logs and launch external CLI tools (Claude/Kimi templates).
 
 ## Local Development
 
