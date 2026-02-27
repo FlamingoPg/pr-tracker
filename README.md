@@ -19,7 +19,7 @@ Before using the app, open **Settings** (gear icon) and add:
 
 If MiniMax key is empty, PR tracking still works and CLI actions can still be launched.
 
-## GitHub Release Key Setup (Required for Valid macOS .dmg)
+## GitHub Release Key Setup (Optional, Recommended for Signed macOS .dmg)
 
 To avoid macOS "app is damaged" warnings, configure signing + notarization secrets in GitHub repository settings:
 
@@ -36,7 +36,7 @@ Example to encode certificate on macOS:
 base64 -i certificate.p12 | pbcopy
 ```
 
-The `release.yml` workflow validates these secrets before building release artifacts.
+If these secrets are missing, `release.yml` still publishes an unsigned macOS bundle.
 
 Typical input example:
 

@@ -30,7 +30,8 @@ jobs:
         env:
           GITHUB_REF_NAME: ${{ github.ref_name }}
 
-      - name: Validate macOS signing and notarization secrets
+      - name: Detect macOS signing and notarization secrets
+        id: signing
         shell: bash
         env:
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
@@ -47,15 +48,20 @@ jobs:
             fi
           done
           if [ "${#missing[@]}" -gt 0 ]; then
-            echo "::error::Missing required GitHub secrets: ${missing[*]}"
-            echo "Set the secrets in repository settings before creating a release tag."
-            exit 1
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "missing=${missing[*]}" >> "$GITHUB_OUTPUT"
+            echo "::warning::Missing signing secrets: ${missing[*]}"
+            echo "::warning::Publishing unsigned macOS bundle."
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::All signing secrets are present. Publishing signed and notarized bundle."
           fi
 
       - name: Install JS dependencies
         run: npm ci
 
-      - name: Build and Publish Tauri Bundles
+      - name: Build and Publish Signed Tauri Bundles
+        if: steps.signing.outputs.enabled == 'true'
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -71,5 +77,23 @@ jobs:
           releaseBody: |
             Automated release for PR Tracker.
             Download the installer for your platform from the assets below.
+            This release is signed and notarized for macOS.
+          releaseDraft: false
+          prerelease: false
+
+      - name: Build and Publish Unsigned Tauri Bundles
+        if: steps.signing.outputs.enabled != 'true'
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: PR Tracker ${{ github.ref_name }}
+          releaseBody: |
+            Automated release for PR Tracker.
+            Download the installer for your platform from the assets below.
+            This release is UNSIGNED and UNNOTARIZED because Apple signing secrets are missing.
+            If macOS blocks opening, run:
+            xattr -dr com.apple.quarantine /Applications/PR\ Tracker.app
           releaseDraft: false
           prerelease: false
