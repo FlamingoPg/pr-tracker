@@ -1,84 +1,71 @@
 # PR Tracker
 
-PR Tracker is a **vibe coding** desktop project built with Tauri + React.
+PR Tracker is a desktop app built with Tauri + React for monitoring GitHub PR CI status.
+It is mainly used for `sgl-project/sglang`, but supports any repo PR URL.
 
-It is primarily used to observe **sglang** PR status (CI runs, failed jobs, rerun actions), and it also works for PRs from any other GitHub repository.
+## Overview
 
-## Key Setup (Do This First)
+- Track multiple PRs across repositories.
+- Show CI status, failed jobs, and rerun actions.
+- Open failed job analysis with optional AI assistance.
+- Support normal window mode and floating window mode.
 
-Before using the app, open **Settings** (gear icon) and add:
+## Installation (macOS)
 
-- `GitHub Token` (required)
-  - Create one at: `https://github.com/settings/tokens`
-  - Minimum recommended permissions:
-    - Pull requests: Read
-    - Checks: Read
-    - Actions: Read (and Write if you want to use rerun actions)
-- `MiniMax API Key` (optional, only for AI log analysis)
-  - Get one from: `https://platform.minimaxi.com`
+Current public packaging workflow builds macOS artifacts only.
 
-If MiniMax key is empty, PR tracking still works and CLI actions can still be launched.
+### Option 1: Releases
 
-## GitHub Release Key Setup (Optional, Recommended for Signed macOS .dmg)
+1. Open the repository **Releases** page.
+2. Download the latest `.dmg`.
+3. Install and launch `PR Tracker`.
 
-To avoid macOS "app is damaged" warnings, configure signing + notarization secrets in GitHub repository settings:
+### Option 2: GitHub Actions Artifacts
 
-- `APPLE_CERTIFICATE`: base64 content of your exported `Developer ID Application` `.p12` certificate
-- `APPLE_CERTIFICATE_PASSWORD`: password used when exporting that `.p12`
-- `APPLE_ID`: your Apple Developer account email
-- `APPLE_PASSWORD`: app-specific password from Apple ID settings
-- `APPLE_TEAM_ID`: your Apple Developer Team ID
-- `APPLE_SIGNING_IDENTITY` (optional): explicit identity string such as `Developer ID Application: Your Name (TEAMID)`
+1. Open the **Actions** tab.
+2. Select the latest `Package` workflow run for `main`.
+3. Download and extract the uploaded macOS artifact.
+4. Install from the extracted app bundle.
 
-Example to encode certificate on macOS:
+### macOS Gatekeeper Temporary Workaround
+
+If macOS says the app is damaged and suggests deleting it, run:
 
 ```bash
-base64 -i certificate.p12 | pbcopy
+xattr -dr com.apple.quarantine "/Applications/PR Tracker.app"
 ```
 
-If these secrets are missing, `release.yml` still publishes an unsigned macOS bundle.
+## Quick Start
 
-Typical input example:
+1. Launch the app and open **Settings** (gear icon).
+2. Configure a `GitHub Token` (required).
+3. Optionally configure `MiniMax API Key` for AI log analysis.
+4. Paste a PR URL such as `https://github.com/<owner>/<repo>/pull/<number>` to start tracking.
 
-- `https://github.com/sgl-project/sglang/pull/18902`
-- `https://github.com/<owner>/<repo>/pull/<number>`
+## Configuration
 
-## One-Click Install
+### GitHub Token (Required)
 
-For stable public versions:
+- Create token: `https://github.com/settings/tokens`
+- Recommended minimum permissions:
+  - Pull requests: Read
+  - Checks: Read
+  - Actions: Read (Write is needed for rerun actions)
 
-1. Go to **Releases**.
-2. Download the installer for your OS:
+### MiniMax API Key (Optional)
 
-- macOS: `.dmg`
+- Used only for AI failure analysis.
+- Without this key, PR tracking and CLI actions still work.
+- Get key from: `https://platform.minimaxi.com`
 
-Current workflow builds macOS artifacts only.
+### CLI Command Templates (Optional)
 
-3. Install and open `PR Tracker`.
-
-For every push to `main` (automatic packaging via GitHub Actions):
-
-1. Open the **Actions** tab and select the latest `Package` workflow run.
-2. Download the uploaded artifact for your platform.
-3. Extract and install from the bundle files.
-
-## First-Time Setup
-
-After first launch, an onboarding modal will guide you to setup.
-You can also open **Settings** (gear icon) manually and configure:
-
-- `GitHub Token` (required): needs `Pull requests: Read` and `Checks: Read` (must be entered manually by each user)
-- `MiniMax API Key` (optional): required only for AI log analysis
-- `CLI command templates` (optional): controls which external CLI commands are shown in the analysis modal
-  - supported placeholders: `{context}`, `{repo}`, `{number}`, `{pr_url}`
-
-Credentials are not auto-imported from `.env` anymore; users configure them explicitly in-app.
-
-## What This Is For
-
-- Main use case: monitor `sgl-project/sglang` pull requests during development and review.
-- Also supported: monitor any GitHub PR by pasting the PR URL.
-- Optional AI assistance: analyze failed job logs and launch external CLI tools (Claude/Kimi templates).
+- Configure external CLI actions shown in analysis modal.
+- Supported placeholders:
+  - `{context}`
+  - `{repo}`
+  - `{number}`
+  - `{pr_url}`
 
 ## Local Development
 
@@ -97,5 +84,5 @@ npm run tauri -- build
 ## Security Notes
 
 - Never commit real tokens or API keys.
-- `.env` is ignored by git.
-- The app no longer hardcodes AI API keys in source code.
+- `.env` is git-ignored.
+- Credentials are configured in-app and are not auto-imported from `.env`.
