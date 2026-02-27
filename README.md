@@ -19,6 +19,25 @@ Before using the app, open **Settings** (gear icon) and add:
 
 If MiniMax key is empty, PR tracking still works and CLI actions can still be launched.
 
+## GitHub Release Key Setup (Required for Valid macOS .dmg)
+
+To avoid macOS "app is damaged" warnings, configure signing + notarization secrets in GitHub repository settings:
+
+- `APPLE_CERTIFICATE`: base64 content of your exported `Developer ID Application` `.p12` certificate
+- `APPLE_CERTIFICATE_PASSWORD`: password used when exporting that `.p12`
+- `APPLE_ID`: your Apple Developer account email
+- `APPLE_PASSWORD`: app-specific password from Apple ID settings
+- `APPLE_TEAM_ID`: your Apple Developer Team ID
+- `APPLE_SIGNING_IDENTITY` (optional): explicit identity string such as `Developer ID Application: Your Name (TEAMID)`
+
+Example to encode certificate on macOS:
+
+```bash
+base64 -i certificate.p12 | pbcopy
+```
+
+The `release.yml` workflow validates these secrets before building release artifacts.
+
 Typical input example:
 
 - `https://github.com/sgl-project/sglang/pull/18902`
