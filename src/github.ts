@@ -168,6 +168,79 @@ export async function fetchPRData(
   };
 }
 
+// ─── Repo CI Health API ─────────────────────────────────────────────────────
+
+interface GitHubRepoResponse {
+  default_branch: string;
+}
+
+interface GitHubCommitItem {
+  sha: string;
+  commit: {
+    message: string;
+    author: { name: string; date: string };
+  };
+}
+
+export interface CommitHealth {
+  sha: string;
+  shortSha: string;
+  message: string;
+  author: string;
+  date: string;
+  ciStatus: CIStatus;
+  ciJobs: CIJob[];
+}
+
+export async function fetchDefaultBranch(repo: string, token: string): Promise<string> {
+  const [owner, repoName] = repo.split("/");
+  const data = await githubFetch<GitHubRepoResponse>(
+    `${API_BASE}/repos/${owner}/${repoName}`,
+    token
+  );
+  return data.default_branch;
+}
+
+export async function fetchRecentCommits(
+  repo: string,
+  branch: string,
+  count: number,
+  token: string
+): Promise<CommitHealth[]> {
+  const [owner, repoName] = repo.split("/");
+  const items = await githubFetch<GitHubCommitItem[]>(
+    `${API_BASE}/repos/${owner}/${repoName}/commits?sha=${encodeURIComponent(branch)}&per_page=${count}`,
+    token
+  );
+  return items.map((item) => ({
+    sha: item.sha,
+    shortSha: item.sha.slice(0, 7),
+    message: item.commit.message.split("\n")[0],
+    author: item.commit.author.name,
+    date: item.commit.author.date,
+    ciStatus: "pending" as CIStatus,
+    ciJobs: [],
+  }));
+}
+
+export async function fetchCommitCI(
+  repo: string,
+  sha: string,
+  token: string
+): Promise<{ ciStatus: CIStatus; ciJobs: CIJob[] }> {
+  const [owner, repoName] = repo.split("/");
+  const checksData = await githubFetch<GitHubCheckRunsResponse>(
+    `${API_BASE}/repos/${owner}/${repoName}/commits/${sha}/check-runs?per_page=100`,
+    token
+  );
+  const ciJobs: CIJob[] = checksData.check_runs.map((cr) => ({
+    name: cr.name,
+    status: mapJobStatus(cr),
+    jobId: cr.details_url ? extractJobId(cr.details_url) : undefined,
+  }));
+  return { ciStatus: deriveCIStatus(ciJobs), ciJobs };
+}
+
 // ─── Fetch raw log for a single Actions job ────────────────────────────────
 
 export async function fetchJobLogs(repo: string, jobId: number, token: string): Promise<string> {

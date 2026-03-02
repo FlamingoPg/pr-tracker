@@ -9,10 +9,15 @@ import {
   getWorkflowRunId,
   getFailedWorkflowRunIds,
   rerunFailedJobs,
+  fetchDefaultBranch,
+  fetchRecentCommits,
+  fetchCommitCI,
   CIJob,
+  CommitHealth,
 } from "./github";
 import { analyzeFailure } from "./llm";
 import { AppSettings, loadSettings, saveSettings } from "./settings";
+import { HealthDashboard, RepoHealth } from "./components/HealthDashboard";
 import "./App.css";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
@@ -287,7 +292,7 @@ function LogModal({
   cliActions: Array<{ label: string; template: string }>;
   onClose: () => void;
 }) {
-  const prUrl = `https://github.com/${repo}/pull/${number}`;
+  const prUrl = number > 0 ? `https://github.com/${repo}/pull/${number}` : `https://github.com/${repo}`;
   const availableActions = cliActions.filter((item) => item.template.trim().length > 0);
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [cliContext, setCliContext] = useState<string | null>(null);
@@ -636,6 +641,24 @@ function App() {
   const didInitialRefreshRef = useRef(false);
   const inFlightFetchesRef = useRef<Record<number, Promise<void>>>({});
 
+  // ── Health Dashboard state ──
+  const [activeTab, setActiveTab] = useState<"prs" | "health">("prs");
+  const [repoHealth, setRepoHealth] = useState<RepoHealth | null>(() => {
+    try {
+      const saved = localStorage.getItem("repo_health_target_v1");
+      if (saved) {
+        const { repo, defaultBranch } = JSON.parse(saved);
+        if (repo) return { repo, defaultBranch, commits: [], isLoading: false };
+      }
+    } catch {}
+    return null;
+  });
+  const repoHealthRef = useRef(repoHealth);
+  useEffect(() => {
+    repoHealthRef.current = repoHealth;
+  });
+  const healthFetchingRef = useRef(false);
+
   const githubToken = settings.githubToken;
   const minimaxApiKey = settings.minimaxApiKey;
   const cliActions = [
@@ -729,6 +752,75 @@ function App() {
     setShowSettings(true);
   }, []);
 
+  // ── Health dashboard data fetching ──
+  const fetchAndUpdateRepoHealth = useCallback(async () => {
+    const current = repoHealthRef.current;
+    if (!githubToken || !current?.repo) return;
+    if (healthFetchingRef.current) return;
+    healthFetchingRef.current = true;
+
+    setRepoHealth((h) => (h ? { ...h, isLoading: true, error: undefined } : h));
+
+    try {
+      let branch = current.defaultBranch;
+      if (!branch) {
+        branch = await fetchDefaultBranch(current.repo, githubToken);
+      }
+
+      const commits = await fetchRecentCommits(current.repo, branch, 60, githubToken);
+
+      // Parallel fetch CI for all commits
+      const ciResults = await Promise.all(
+        commits.map((c) => fetchCommitCI(current.repo, c.sha, githubToken).catch(() => null))
+      );
+      const enriched: CommitHealth[] = commits.map((c, i) => ({
+        ...c,
+        ciStatus: ciResults[i]?.ciStatus ?? "pending",
+        ciJobs: ciResults[i]?.ciJobs ?? [],
+      }));
+
+      setRepoHealth({
+        repo: current.repo,
+        defaultBranch: branch,
+        commits: enriched,
+        isLoading: false,
+      });
+
+      localStorage.setItem(
+        "repo_health_target_v1",
+        JSON.stringify({ repo: current.repo, defaultBranch: branch })
+      );
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setRepoHealth((h) => (h ? { ...h, isLoading: false, error: message } : h));
+    } finally {
+      healthFetchingRef.current = false;
+    }
+  }, [githubToken]);
+
+  const handleSetRepo = useCallback(
+    (repo: string) => {
+      if (!repo) {
+        // Clear
+        setRepoHealth(null);
+        localStorage.removeItem("repo_health_target_v1");
+        return;
+      }
+      const cleaned = repo.replace(/^https?:\/\/github\.com\//, "").replace(/\/$/, "");
+      setRepoHealth({ repo: cleaned, defaultBranch: "", commits: [], isLoading: true });
+      // Will trigger fetch via effect
+    },
+    []
+  );
+
+  // Fetch health data when repo changes or on initial load
+  useEffect(() => {
+    if (!githubToken || !repoHealth?.repo) return;
+    if (repoHealth.commits.length === 0 && !repoHealth.error) {
+      void fetchAndUpdateRepoHealth();
+    }
+  }, [githubToken, repoHealth?.repo, fetchAndUpdateRepoHealth]);
+
   // Save PRs to localStorage when they change
   useEffect(() => {
     // Only save minimal data (no runtime state like isLoading, error, runId)
@@ -760,7 +852,9 @@ function App() {
     prsRef.current = prs;
   });
 
-  const hasRunning = prs.some((p) => p.ciStatus === "running");
+  const hasRunning =
+    prs.some((p) => p.ciStatus === "running") ||
+    (repoHealth?.commits.some((c) => c.ciStatus === "running") ?? false);
 
   const grouped = prs.reduce(
     (acc, pr) => {
@@ -886,9 +980,12 @@ function App() {
     const ms = hasRunning ? 15_000 : 30_000;
     const timer = setInterval(() => {
       prsRef.current.forEach((pr) => void fetchAndUpdatePR(pr, { showLoading: false }));
+      if (repoHealthRef.current?.repo) {
+        void fetchAndUpdateRepoHealth();
+      }
     }, ms);
     return () => clearInterval(timer);
-  }, [hasRunning, fetchAndUpdatePR]);
+  }, [hasRunning, fetchAndUpdatePR, fetchAndUpdateRepoHealth]);
 
   const removePR = (id: number) => setPrs((prev) => prev.filter((p) => p.id !== id));
 
@@ -1024,6 +1121,21 @@ function App() {
                 <div className="logo-name">PR Tracker</div>
                 <div className="logo-sub">GitHub CI Monitor</div>
               </div>
+            </div>
+
+            <div className="tab-bar">
+              <button
+                className={`tab-btn${activeTab === "prs" ? " tab-active" : ""}`}
+                onClick={() => setActiveTab("prs")}
+              >
+                PRs
+              </button>
+              <button
+                className={`tab-btn${activeTab === "health" ? " tab-active" : ""}`}
+                onClick={() => setActiveTab("health")}
+              >
+                CI Health
+              </button>
             </div>
 
             <div className="header-stats">
@@ -1196,66 +1308,80 @@ function App() {
             {/* ── Status message ── */}
             {statusMsg && <div className="status-toast">{statusMsg}</div>}
 
-            {/* ── Add PR ── */}
-            <div className="add-bar">
-              <input
-                className="add-url-input"
-                type="text"
-                placeholder="Paste a GitHub PR URL — https://github.com/owner/repo/pull/123"
-                value={urlInput}
-                onChange={(e) => setUrlInput(e.target.value)}
-                onPaste={(e) => {
-                  const text = e.clipboardData.getData("text");
-                  if (parseAndTrack(text)) e.preventDefault();
-                }}
-                onKeyDown={(e) => e.key === "Enter" && parseAndTrack(urlInput)}
-                spellCheck={false}
-                autoComplete="off"
+            {activeTab === "health" ? (
+              <HealthDashboard
+                health={repoHealth}
+                onSetRepo={handleSetRepo}
+                onJobClick={(repo, _commitSha, job) =>
+                  setLogModal({ repo, number: 0, job })
+                }
               />
-            </div>
-
-            {/* ── PR List ── */}
-            {prs.length === 0 ? (
-              <div className="empty-state" style={{ marginTop: "60px" }}>
-                <div className="empty-icon-wrap">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-                    <path
-                      d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
-                      fill="#24292f"
-                    />
-                  </svg>
-                </div>
-                <p className="empty-title">No PRs tracked yet</p>
-                <p className="empty-desc">Paste a GitHub PR URL above to start tracking</p>
-              </div>
             ) : (
-              <div className="pr-area">
-                {Object.entries(grouped).map(([repo, repoPRs]) => (
-                  <div key={repo} className="repo-group">
-                    <div className="repo-header">
-                      <span className="repo-name">{repo}</span>
-                      <span className="repo-count">{repoPRs.length}</span>
-                    </div>
-                    <div className="repo-cards">
-                      {repoPRs.map((pr, idx) => (
-                        <PRCard
-                          key={pr.id}
-                          pr={pr}
-                          onRemove={() => removePR(pr.id)}
-                          onJobClick={(job) =>
-                            setLogModal({ repo: pr.repo, number: pr.number, job })
-                          }
-                          onRerun={handleRerun}
-                          onRerunAll={rerunAllFailed}
-                          showRerunAll={idx === 0 && repoPRs.some((p) => p.ciStatus === "failure")}
-                          isRerunning={isRerunAllRunning || Boolean(rerunningPrIds[pr.id])}
-                          isRerunAllRunning={isRerunAllRunning}
+              <>
+                {/* ── Add PR ── */}
+                <div className="add-bar">
+                  <input
+                    className="add-url-input"
+                    type="text"
+                    placeholder="Paste a GitHub PR URL — https://github.com/owner/repo/pull/123"
+                    value={urlInput}
+                    onChange={(e) => setUrlInput(e.target.value)}
+                    onPaste={(e) => {
+                      const text = e.clipboardData.getData("text");
+                      if (parseAndTrack(text)) e.preventDefault();
+                    }}
+                    onKeyDown={(e) => e.key === "Enter" && parseAndTrack(urlInput)}
+                    spellCheck={false}
+                    autoComplete="off"
+                  />
+                </div>
+
+                {/* ── PR List ── */}
+                {prs.length === 0 ? (
+                  <div className="empty-state" style={{ marginTop: "60px" }}>
+                    <div className="empty-icon-wrap">
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                        <path
+                          d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
+                          fill="#24292f"
                         />
-                      ))}
+                      </svg>
                     </div>
+                    <p className="empty-title">No PRs tracked yet</p>
+                    <p className="empty-desc">Paste a GitHub PR URL above to start tracking</p>
                   </div>
-                ))}
-              </div>
+                ) : (
+                  <div className="pr-area">
+                    {Object.entries(grouped).map(([repo, repoPRs]) => (
+                      <div key={repo} className="repo-group">
+                        <div className="repo-header">
+                          <span className="repo-name">{repo}</span>
+                          <span className="repo-count">{repoPRs.length}</span>
+                        </div>
+                        <div className="repo-cards">
+                          {repoPRs.map((pr, idx) => (
+                            <PRCard
+                              key={pr.id}
+                              pr={pr}
+                              onRemove={() => removePR(pr.id)}
+                              onJobClick={(job) =>
+                                setLogModal({ repo: pr.repo, number: pr.number, job })
+                              }
+                              onRerun={handleRerun}
+                              onRerunAll={rerunAllFailed}
+                              showRerunAll={
+                                idx === 0 && repoPRs.some((p) => p.ciStatus === "failure")
+                              }
+                              isRerunning={isRerunAllRunning || Boolean(rerunningPrIds[pr.id])}
+                              isRerunAllRunning={isRerunAllRunning}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </>
         )}

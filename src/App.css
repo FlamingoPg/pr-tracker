@@ -1157,6 +1157,753 @@ body.floating #root {
 }
 
 /* ============================================================
+   TAB BAR
+   ============================================================ */
+.tab-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: color-mix(in srgb, var(--bg-surface) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  border-radius: 12px;
+  padding: 3px;
+  flex-shrink: 0;
+}
+
+.tab-btn {
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+
+.tab-btn:hover {
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--bg-hover) 60%, transparent);
+}
+
+.tab-btn.tab-active {
+  color: var(--text-primary);
+  background: var(--bg-surface);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.06),
+    0 0 0 1px color-mix(in srgb, var(--border) 60%, transparent);
+}
+
+[data-theme="dark"] .tab-btn.tab-active {
+  background: var(--bg-elevated);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.25),
+    0 0 12px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+/* ============================================================
+   HEALTH DASHBOARD
+   ============================================================ */
+.health-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: fadeIn 0.3s ease forwards;
+}
+
+/* Shared section title */
+.health-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+/* ── Hero card ── */
+.health-hero {
+  padding: 20px 22px;
+  border-radius: 18px;
+  background: var(--glass);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
+  box-shadow:
+    var(--shadow-sm),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.health-hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.health-hero-repo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.health-repo-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.health-branch {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.health-loading-badge {
+  font-size: 12px;
+  color: var(--accent);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.health-change-repo {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  border-radius: 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+
+.health-change-repo:hover {
+  background: rgba(207, 34, 46, 0.1);
+  color: var(--error);
+  border-color: color-mix(in srgb, var(--error) 30%, transparent);
+}
+
+/* Latest commit row */
+.health-hero-latest {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.health-hero-indicator {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.health-hero-success {
+  background: color-mix(in srgb, var(--success) 15%, transparent);
+  color: var(--success);
+}
+.health-hero-failure {
+  background: color-mix(in srgb, var(--error) 15%, transparent);
+  color: var(--error);
+}
+.health-hero-running {
+  background: color-mix(in srgb, var(--warning) 15%, transparent);
+  color: var(--warning);
+}
+.health-hero-pending {
+  background: color-mix(in srgb, var(--text-muted) 15%, transparent);
+  color: var(--text-muted);
+}
+
+.health-hero-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.health-hero-title {
+  font-size: 14px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.health-hero-title code {
+  font-family: "SF Mono", ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  padding: 1px 6px;
+  border-radius: 5px;
+}
+
+.health-hero-time {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Mini stats inside hero */
+.health-hero-stats {
+  display: flex;
+  gap: 0;
+  border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  padding-top: 12px;
+  margin-top: 2px;
+}
+
+.health-hero-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.health-hero-stat-val {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.health-hero-stat-lbl {
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.health-val-green { color: var(--success); }
+.health-val-teal { color: #2d9f56; }
+[data-theme="dark"] .health-val-teal { color: #8cd9a0; }
+.health-val-red { color: var(--error); }
+
+/* ── Insights panel ── */
+.health-insights {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.health-insights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 10px;
+}
+
+.health-insight {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid;
+  transition: var(--transition);
+}
+
+.health-insight:hover {
+  transform: translateY(-1px);
+}
+
+.health-insight-good {
+  background: color-mix(in srgb, var(--success) 8%, transparent);
+  border-color: color-mix(in srgb, var(--success) 22%, transparent);
+}
+
+.health-insight-warn {
+  background: color-mix(in srgb, var(--warning) 8%, transparent);
+  border-color: color-mix(in srgb, var(--warning) 22%, transparent);
+}
+
+.health-insight-critical {
+  background: color-mix(in srgb, var(--error) 8%, transparent);
+  border-color: color-mix(in srgb, var(--error) 22%, transparent);
+}
+
+.health-insight-info {
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.health-insight-icon {
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.health-insight-good .health-insight-icon {
+  background: color-mix(in srgb, var(--success) 16%, transparent);
+  color: var(--success);
+}
+.health-insight-warn .health-insight-icon {
+  background: color-mix(in srgb, var(--warning) 16%, transparent);
+  color: var(--warning);
+}
+.health-insight-critical .health-insight-icon {
+  background: color-mix(in srgb, var(--error) 16%, transparent);
+  color: var(--error);
+}
+.health-insight-info .health-insight-icon {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+}
+
+.health-insight-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.health-insight-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.health-insight-detail {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+/* ── Heatmap ── */
+.ci-heatmap-wrap {
+  padding: 20px;
+  border-radius: 16px;
+  background: var(--glass);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  box-shadow: var(--shadow-sm);
+}
+
+.ci-heatmap-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.ci-heatmap-hint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.heatmap-legend-cell {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: 2px;
+  vertical-align: middle;
+}
+
+.heatmap-legend-all-pass { background: var(--success); }
+.heatmap-legend-gpu-pass { background: #8cd9a0; }
+[data-theme="dark"] .heatmap-legend-gpu-pass { background: #4aa06a; }
+.heatmap-legend-gpu-fail { background: var(--error); }
+.heatmap-legend-running { background: var(--warning); }
+.heatmap-legend-pending { background: color-mix(in srgb, var(--text-muted) 30%, transparent); }
+
+.ci-heatmap {
+  display: grid;
+  gap: 3px;
+}
+
+.ci-heatmap-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.ci-heatmap-footer-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+.ci-heatmap-empty {
+  padding: 40px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.heatmap-cell {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 4px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+  min-width: 0;
+  max-width: 28px;
+}
+
+.heatmap-cell.heatmap-hover {
+  transform: scale(1.4);
+  z-index: 10;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+}
+
+.heatmap-all-pass { background: var(--success); }
+.heatmap-gpu-pass { background: #8cd9a0; }
+[data-theme="dark"] .heatmap-gpu-pass { background: #4aa06a; }
+.heatmap-gpu-fail { background: var(--error); }
+.heatmap-running { background: var(--warning); animation: pulse 1.5s ease-in-out infinite; }
+.heatmap-pending { background: color-mix(in srgb, var(--text-muted) 30%, transparent); }
+
+/* Heatmap Tooltip */
+.heatmap-tooltip {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  min-width: 200px;
+  max-width: 280px;
+  box-shadow: var(--shadow-md);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  pointer-events: none;
+}
+
+.heatmap-tooltip-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.heatmap-tooltip-sha {
+  font-family: "SF Mono", ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.heatmap-tooltip-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+}
+
+.heatmap-tooltip-all-pass {
+  color: var(--success);
+  background: color-mix(in srgb, var(--success) 14%, transparent);
+}
+.heatmap-tooltip-gpu-pass {
+  color: #2d9f56;
+  background: rgba(140, 217, 160, 0.2);
+}
+[data-theme="dark"] .heatmap-tooltip-gpu-pass {
+  color: #8cd9a0;
+}
+.heatmap-tooltip-gpu-fail {
+  color: var(--error);
+  background: color-mix(in srgb, var(--error) 14%, transparent);
+}
+.heatmap-tooltip-running {
+  color: var(--warning);
+  background: color-mix(in srgb, var(--warning) 14%, transparent);
+}
+.heatmap-tooltip-pending {
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--text-muted) 14%, transparent);
+}
+
+.heatmap-tooltip-msg {
+  font-size: 12px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.heatmap-tooltip-time {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.heatmap-tooltip-gpu-note {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.heatmap-tooltip-action {
+  font-size: 10px;
+  color: var(--accent);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* ── Failure Timeline ── */
+.failure-timeline {
+  padding: 20px;
+  border-radius: 16px;
+  background: var(--glass);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  box-shadow: var(--shadow-sm);
+}
+
+.failure-timeline-header {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+
+.failure-all-clear {
+  padding: 24px;
+  text-align: center;
+  color: var(--success);
+  font-size: 14px;
+  font-weight: 500;
+  background: color-mix(in srgb, var(--success) 8%, transparent);
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--success) 20%, transparent);
+}
+
+.failure-events {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.failure-event {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--error) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--error) 16%, transparent);
+  position: relative;
+  transition: var(--transition);
+}
+
+.failure-event:hover {
+  background: color-mix(in srgb, var(--error) 8%, transparent);
+}
+
+.failure-event-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.failure-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--error);
+  flex-shrink: 0;
+}
+
+.failure-time {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.failure-sha {
+  font-family: "SF Mono", ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  padding: 2px 7px;
+  border-radius: 6px;
+}
+
+.failure-msg {
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+.failure-jobs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.failure-view-btn {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  transition: var(--transition);
+}
+
+.failure-view-btn:hover {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+/* ── Frequent Failure Jobs ── */
+.health-freq-failures {
+  padding: 20px;
+  border-radius: 16px;
+  background: var(--glass);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.health-freq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.health-freq-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.health-freq-bar-bg {
+  width: 80px;
+  height: 6px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--border) 60%, transparent);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.health-freq-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--error);
+  transition: width 0.3s ease;
+}
+
+.health-freq-name {
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: 500;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.health-freq-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--error);
+  font-family: "SF Mono", ui-monospace, monospace;
+  flex-shrink: 0;
+}
+
+/* ── Health Setup ── */
+.health-setup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  text-align: center;
+  border-radius: 22px;
+  border: 1px dashed color-mix(in srgb, var(--border) 86%, transparent);
+  background: color-mix(in srgb, var(--bg-surface) 68%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: fadeIn 0.3s ease forwards;
+}
+
+.health-setup-icon {
+  margin-bottom: 20px;
+  color: var(--accent);
+  opacity: 0.7;
+}
+
+.health-setup-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 8px;
+}
+
+.health-setup-desc {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0 0 24px;
+  max-width: 400px;
+  line-height: 1.5;
+}
+
+.health-setup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 380px;
+}
+
+.health-setup-form .add-url-input {
+  text-align: center;
+}
+
+.health-setup-form .external-link-btn {
+  align-self: center;
+}
+
+/* ============================================================
    RESPONSIVE
    ============================================================ */
 @media (max-width: 768px) {
