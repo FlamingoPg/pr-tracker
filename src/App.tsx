@@ -18,6 +18,7 @@ import {
 import { analyzeFailure } from "./llm";
 import { AppSettings, loadSettings, saveSettings } from "./settings";
 import { HealthDashboard, RepoHealth } from "./components/HealthDashboard";
+import { MiniHeatmap } from "./components/CIHeatmap";
 import "./App.css";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
@@ -1278,6 +1279,9 @@ function App() {
                   isRerunAllRunning={isRerunAllRunning}
                 />
               ))}
+              {repoHealth && repoHealth.commits.length > 0 && (
+                <MiniHeatmap commits={repoHealth.commits} />
+              )}
             </div>
           </div>
         ) : (

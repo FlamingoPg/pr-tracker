@@ -43,6 +43,47 @@ const STATUS_LABEL: Record<HeatmapStatus, string> = {
   pending: "Pending",
 };
 
+// ── Mini Heatmap for floating mode ──
+
+interface MiniProps {
+  commits: CommitHealth[];
+}
+
+const MINI_COUNT = 30;
+const MINI_COLS = 15;
+
+export function MiniHeatmap({ commits }: MiniProps) {
+  const recent = useMemo(() => commits.slice(0, MINI_COUNT).reverse(), [commits]);
+  const statuses = useMemo(() => recent.map(deriveHeatmapStatus), [recent]);
+
+  if (recent.length === 0) return null;
+
+  const gpuFails = statuses.filter((s) => s === "gpu-fail").length;
+  const total = recent.length;
+  const gpuPassRate = Math.round(((total - gpuFails) / total) * 100);
+
+  return (
+    <div className="mini-heatmap-wrap">
+      <div className="mini-heatmap-summary">
+        <span className="mini-heatmap-label">CI Health</span>
+        <span className={`mini-heatmap-rate ${gpuFails > 0 ? "mini-rate-warn" : "mini-rate-ok"}`}>
+          GPU {gpuPassRate}%
+        </span>
+        {gpuFails > 0 && (
+          <span className="mini-heatmap-fails">{gpuFails} GPU fail{gpuFails > 1 ? "s" : ""}</span>
+        )}
+      </div>
+      <div className="mini-heatmap-grid" style={{ gridTemplateColumns: `repeat(${MINI_COLS}, 1fr)` }}>
+        {recent.map((c, i) => (
+          <div key={c.sha} className={`mini-heatmap-cell heatmap-${statuses[i]}`} title={`${c.shortSha} · ${STATUS_LABEL[statuses[i]]}`} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Full Heatmap ──
+
 interface Props {
   commits: CommitHealth[];
   onCommitClick?: (commit: CommitHealth) => void;

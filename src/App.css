@@ -1156,6 +1156,72 @@ body.floating #root {
   background: rgba(99, 102, 241, 0.35);
 }
 
+/* Mini Heatmap in floating mode */
+.mini-heatmap-wrap {
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.25) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] .mini-heatmap-wrap {
+  background: linear-gradient(135deg, rgba(50, 50, 60, 0.45) 0%, rgba(35, 35, 45, 0.25) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.mini-heatmap-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.mini-heatmap-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.mini-heatmap-rate {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.mini-rate-ok {
+  color: var(--success);
+  background: color-mix(in srgb, var(--success) 14%, transparent);
+}
+
+.mini-rate-warn {
+  color: var(--error);
+  background: color-mix(in srgb, var(--error) 14%, transparent);
+}
+
+.mini-heatmap-fails {
+  font-size: 10px;
+  color: var(--error);
+  font-weight: 600;
+}
+
+.mini-heatmap-grid {
+  display: grid;
+  gap: 2px;
+}
+
+.mini-heatmap-cell {
+  aspect-ratio: 1;
+  border-radius: 2px;
+  min-width: 0;
+}
+
 /* ============================================================
    TAB BAR
    ============================================================ */
