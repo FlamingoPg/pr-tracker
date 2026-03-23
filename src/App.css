@@ -177,7 +177,11 @@ body.floating #root {
   font-weight: 700;
   color: var(--text-primary);
   letter-spacing: -0.03em;
-  font-family: "Space Grotesk", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family:
+    "Space Grotesk",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
 }
 
 .logo-sub {
@@ -243,11 +247,7 @@ body.floating #root {
   gap: 8px;
   padding: 0 17px;
   height: 38px;
-  background: linear-gradient(
-    135deg,
-    var(--primary) 0%,
-    var(--primary-hover) 100%
-  );
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
   border: none;
   color: white;
   border-radius: 11px;
@@ -281,7 +281,11 @@ body.floating #root {
   gap: 8px;
   padding: 0 17px;
   height: 38px;
-  background: linear-gradient(135deg, var(--error) 0%, color-mix(in srgb, var(--error) 80%, #991b1b 20%) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--error) 0%,
+    color-mix(in srgb, var(--error) 80%, #991b1b 20%) 100%
+  );
   border: none;
   color: white;
   border-radius: 11px;
@@ -1151,7 +1155,9 @@ body.floating #root {
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
   z-index: 9999;
 }
 
@@ -1691,7 +1697,11 @@ body.floating #root {
   font-weight: 700;
   color: var(--text-primary);
   letter-spacing: -0.03em;
-  font-family: "Space Grotesk", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family:
+    "Space Grotesk",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
 }
 
 .health-hero-stat-lbl {
@@ -1730,10 +1740,18 @@ body.floating #root {
   background: #8cd9a0;
 }
 
-.health-val-green { color: var(--success); }
-.health-val-teal { color: #2d9f56; }
-[data-theme="dark"] .health-val-teal { color: #8cd9a0; }
-.health-val-red { color: var(--error); }
+.health-val-green {
+  color: var(--success);
+}
+.health-val-teal {
+  color: #2d9f56;
+}
+[data-theme="dark"] .health-val-teal {
+  color: #8cd9a0;
+}
+.health-val-red {
+  color: var(--error);
+}
 
 /* ── Insights panel ── */
 .health-insights {
@@ -1865,16 +1883,36 @@ body.floating #root {
   vertical-align: middle;
 }
 
-.heatmap-legend-all-pass { background: #40c463; }
-[data-theme="dark"] .heatmap-legend-all-pass { background: #39d353; }
-.heatmap-legend-gpu-pass { background: #9be9a8; }
-[data-theme="dark"] .heatmap-legend-gpu-pass { background: #26a641; }
-.heatmap-legend-gpu-fail { background: #f97583; }
-[data-theme="dark"] .heatmap-legend-gpu-fail { background: #f85149; }
-.heatmap-legend-running { background: #ffd33d; }
-[data-theme="dark"] .heatmap-legend-running { background: #e3b341; }
-.heatmap-legend-pending { background: #ebedf0; }
-[data-theme="dark"] .heatmap-legend-pending { background: #161b22; }
+.heatmap-legend-all-pass {
+  background: #40c463;
+}
+[data-theme="dark"] .heatmap-legend-all-pass {
+  background: #39d353;
+}
+.heatmap-legend-gpu-pass {
+  background: #9be9a8;
+}
+[data-theme="dark"] .heatmap-legend-gpu-pass {
+  background: #26a641;
+}
+.heatmap-legend-gpu-fail {
+  background: #f97583;
+}
+[data-theme="dark"] .heatmap-legend-gpu-fail {
+  background: #f85149;
+}
+.heatmap-legend-running {
+  background: #ffd33d;
+}
+[data-theme="dark"] .heatmap-legend-running {
+  background: #e3b341;
+}
+.heatmap-legend-pending {
+  background: #ebedf0;
+}
+[data-theme="dark"] .heatmap-legend-pending {
+  background: #161b22;
+}
 
 .ci-heatmap {
   display: grid;
@@ -1970,7 +2008,9 @@ body.floating #root {
   width: 100%;
   aspect-ratio: 1;
   border-radius: 3px;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
   position: relative;
   min-width: 0;
   max-width: 24px;
@@ -1989,16 +2029,37 @@ body.floating #root {
   outline: none;
 }
 
-.heatmap-all-pass { background: #40c463; }
-[data-theme="dark"] .heatmap-all-pass { background: #39d353; }
-.heatmap-gpu-pass { background: #9be9a8; }
-[data-theme="dark"] .heatmap-gpu-pass { background: #26a641; }
-.heatmap-gpu-fail { background: #f97583; }
-[data-theme="dark"] .heatmap-gpu-fail { background: #f85149; }
-.heatmap-running { background: #ffd33d; animation: pulse 1.5s ease-in-out infinite; }
-[data-theme="dark"] .heatmap-running { background: #e3b341; }
-.heatmap-pending { background: #ebedf0; }
-[data-theme="dark"] .heatmap-pending { background: #161b22; }
+.heatmap-all-pass {
+  background: #40c463;
+}
+[data-theme="dark"] .heatmap-all-pass {
+  background: #39d353;
+}
+.heatmap-gpu-pass {
+  background: #9be9a8;
+}
+[data-theme="dark"] .heatmap-gpu-pass {
+  background: #26a641;
+}
+.heatmap-gpu-fail {
+  background: #f97583;
+}
+[data-theme="dark"] .heatmap-gpu-fail {
+  background: #f85149;
+}
+.heatmap-running {
+  background: #ffd33d;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+[data-theme="dark"] .heatmap-running {
+  background: #e3b341;
+}
+.heatmap-pending {
+  background: #ebedf0;
+}
+[data-theme="dark"] .heatmap-pending {
+  background: #161b22;
+}
 
 /* Heatmap Tooltip */
 .heatmap-tooltip {

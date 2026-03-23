@@ -39,13 +39,13 @@ The CI Health tab provides a bird's-eye view of a repository's default branch CI
 
 A GitHub Contribution-style grid where each cell represents one commit. Click any cell to open the commit on GitHub.
 
-| Color | Meaning |
-|-------|---------|
-| **Green** | All CI jobs passed |
+| Color           | Meaning                                        |
+| --------------- | ---------------------------------------------- |
+| **Green**       | All CI jobs passed                             |
 | **Light green** | NVIDIA GPU CI passed, only non-GPU jobs failed |
-| **Pink** | NVIDIA GPU CI has failures |
-| **Yellow** | CI still running |
-| **Gray** | Pending / no checks |
+| **Pink**        | NVIDIA GPU CI has failures                     |
+| **Yellow**      | CI still running                               |
+| **Gray**        | Pending / no checks                            |
 
 #### Recent GPU Failures
 
