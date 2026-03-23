@@ -1,40 +1,18 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@600;700&display=swap");
 
-:root {
-  --bg-base: #0d1117;
-  --bg-surface: #161b22;
-  --bg-elevated: #1c2128;
-  --bg-hover: #21262d;
-
-  --text-primary: #e6edf3;
-  --text-secondary: #8b949e;
-  --text-muted: #484f58;
-
-  --border: #30363d;
-  --border-subtle: #21262d;
-
-  --success: #3fb950;
-  --success-bg: rgba(63, 185, 80, 0.12);
-  --error: #f85149;
-  --error-bg: rgba(248, 81, 73, 0.12);
-  --warning: #e3b341;
-  --warning-bg: rgba(227, 179, 65, 0.12);
-  --info: #58a6ff;
-  --info-bg: rgba(88, 166, 255, 0.12);
-  --muted: #484f58;
-  --muted-bg: rgba(72, 79, 88, 0.15);
-  --purple: #a371f7;
-  --purple-bg: rgba(163, 113, 247, 0.12);
-
-  --accent: #58a6ff;
-  --radius: 10px;
-  --radius-sm: 6px;
-}
+/* CSS variables are defined in App.css */
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
 }
 
 html {
@@ -48,13 +26,18 @@ body {
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
-  background: var(--bg-base);
-  color: var(--text-primary);
+  background: #f0f2f5;
+  color: #101828;
   min-height: 100vh;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-size: 14px;
+}
+
+body.floating,
+body.floating #root {
+  background: transparent !important;
 }
 
 ::-webkit-scrollbar {

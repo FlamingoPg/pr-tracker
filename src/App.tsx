@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { open } from "@tauri-apps/plugin-shell";
 import { invoke } from "@tauri-apps/api/core";
@@ -19,6 +19,23 @@ import { analyzeFailure } from "./llm";
 import { AppSettings, loadSettings, saveSettings } from "./settings";
 import { HealthDashboard, RepoHealth } from "./components/HealthDashboard";
 import { MiniHeatmap } from "./components/CIHeatmap";
+import {
+  Github,
+  RotateCw,
+  Settings,
+  Sun,
+  Moon,
+  PanelTop,
+  ExternalLink,
+  Trash2,
+  Play,
+  Zap,
+  X,
+  LayoutList,
+  LayoutGrid,
+  CircleCheck,
+  CircleX,
+} from "lucide-react";
 import "./App.css";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
@@ -46,59 +63,6 @@ interface RefreshOptions {
 
 const ONBOARDING_STORAGE_KEY = "pr_tracker_onboarding_seen_v1";
 
-// ─── Icons ─────────────────────────────────────────────────────────────────
-
-const RefreshIcon = () => (
-  <svg
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-    <path d="M21 3v5h-5" />
-    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-    <path d="M8 16H3v5" />
-  </svg>
-);
-
-const ExternalIcon = () => (
-  <svg
-    width="14"
-    height="14"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-    <polyline points="15 3 21 3 21 9" />
-    <line x1="10" y1="14" x2="21" y2="3" />
-  </svg>
-);
-
-const TrashIcon = () => (
-  <svg
-    width="14"
-    height="14"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="3 6 5 6 21 6" />
-    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-  </svg>
-);
-
 // ─── Status Indicator ──────────────────────────────────────────────────────
 
 function StatusIndicator({ status }: { status: string }) {
@@ -112,37 +76,14 @@ function StatusIndicator({ status }: { status: string }) {
   if (status === "success") {
     return (
       <div className="status-icon success">
-        <svg
-          width="15"
-          height="15"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="var(--success)"
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <polyline points="20 6 9 17 4 12" />
-        </svg>
+        <CircleCheck size={15} color="var(--success)" />
       </div>
     );
   }
   if (status === "failure") {
     return (
       <div className="status-icon failure">
-        <svg
-          width="15"
-          height="15"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="var(--error)"
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <line x1="18" y1="6" x2="6" y2="18" />
-          <line x1="6" y1="6" x2="18" y2="18" />
-        </svg>
+        <CircleX size={15} color="var(--error)" />
       </div>
     );
   }
@@ -165,13 +106,10 @@ function SettingsModal({
   onClose: () => void;
 }) {
   const [githubToken, setGithubToken] = useState(initialSettings.githubToken);
-  const [minimaxApiKey, setMinimaxApiKey] = useState(initialSettings.minimaxApiKey);
   const [primaryCliLabel, setPrimaryCliLabel] = useState(initialSettings.primaryCliLabel);
   const [primaryCliTemplate, setPrimaryCliTemplate] = useState(initialSettings.primaryCliTemplate);
-  const [secondaryCliLabel, setSecondaryCliLabel] = useState(initialSettings.secondaryCliLabel);
-  const [secondaryCliTemplate, setSecondaryCliTemplate] = useState(
-    initialSettings.secondaryCliTemplate
-  );
+  const secondaryCliLabel = initialSettings.secondaryCliLabel;
+  const secondaryCliTemplate = initialSettings.secondaryCliTemplate;
 
   return (
     <div className="native-modal" onClick={onClose}>
@@ -192,23 +130,11 @@ function SettingsModal({
               autoComplete="off"
             />
 
-            <label style={{ fontWeight: 600, marginTop: "8px" }}>
-              MiniMax API Key (AI analysis)
-            </label>
-            <input
-              className="add-url-input"
-              type="password"
-              placeholder="your_minimax_key_here"
-              value={minimaxApiKey}
-              onChange={(e) => setMinimaxApiKey(e.target.value)}
-              autoComplete="off"
-            />
-
             <label style={{ fontWeight: 600, marginTop: "8px" }}>Primary CLI Label</label>
             <input
               className="add-url-input"
               type="text"
-              placeholder="Claude CLI"
+              placeholder="Codex"
               value={primaryCliLabel}
               onChange={(e) => setPrimaryCliLabel(e.target.value)}
               autoComplete="off"
@@ -218,29 +144,9 @@ function SettingsModal({
             <input
               className="add-url-input"
               type="text"
-              placeholder="claude -p {context}"
+              placeholder="codex {context}"
               value={primaryCliTemplate}
               onChange={(e) => setPrimaryCliTemplate(e.target.value)}
-              autoComplete="off"
-            />
-
-            <label style={{ fontWeight: 600, marginTop: "8px" }}>Secondary CLI Label</label>
-            <input
-              className="add-url-input"
-              type="text"
-              placeholder="Kimi CLI"
-              value={secondaryCliLabel}
-              onChange={(e) => setSecondaryCliLabel(e.target.value)}
-              autoComplete="off"
-            />
-
-            <label style={{ fontWeight: 600 }}>Secondary CLI Command Template</label>
-            <input
-              className="add-url-input"
-              type="text"
-              placeholder="kimi -y -p {context}"
-              value={secondaryCliTemplate}
-              onChange={(e) => setSecondaryCliTemplate(e.target.value)}
               autoComplete="off"
             />
 
@@ -259,7 +165,7 @@ function SettingsModal({
               onClick={() =>
                 onSave({
                   githubToken: githubToken.trim(),
-                  minimaxApiKey: minimaxApiKey.trim(),
+                  minimaxApiKey: "",
                   primaryCliLabel: primaryCliLabel.trim(),
                   primaryCliTemplate: primaryCliTemplate.trim(),
                   secondaryCliLabel: secondaryCliLabel.trim(),
@@ -293,7 +199,8 @@ function LogModal({
   cliActions: Array<{ label: string; template: string }>;
   onClose: () => void;
 }) {
-  const prUrl = number > 0 ? `https://github.com/${repo}/pull/${number}` : `https://github.com/${repo}`;
+  const prUrl =
+    number > 0 ? `https://github.com/${repo}/pull/${number}` : `https://github.com/${repo}`;
   const availableActions = cliActions.filter((item) => item.template.trim().length > 0);
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [cliContext, setCliContext] = useState<string | null>(null);
@@ -459,19 +366,13 @@ function PRCard({
   onRemove,
   onJobClick,
   onRerun,
-  onRerunAll,
-  showRerunAll,
   isRerunning,
-  isRerunAllRunning,
 }: {
   pr: PR;
   onRemove: () => void;
   onJobClick: (job: CIJob) => void;
   onRerun: (prId: number, runId?: number) => void;
-  onRerunAll?: () => void;
-  showRerunAll?: boolean;
   isRerunning?: boolean;
-  isRerunAllRunning?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -529,7 +430,7 @@ function PRCard({
                     style={{ cursor: "pointer", marginRight: "6px" }}
                   >
                     {expanded
-                      ? "▼ 收起"
+                      ? "▼ Collapse"
                       : `▲ +${pr.ciJobs.filter((j) => j.status === "failure").length - 3}`}
                   </span>
                 )}
@@ -545,7 +446,7 @@ function PRCard({
                         onJobClick(job);
                       }}
                       style={{ cursor: "pointer" }}
-                      title="点击查看 AI 分析"
+                      data-tip="Click to view AI analysis"
                     >
                       {job.name}
                     </span>
@@ -558,45 +459,23 @@ function PRCard({
         <div className="pr-card-actions" onClick={(e) => e.stopPropagation()}>
           <button
             className="card-btn"
-            title="Open on GitHub"
+            data-tip="Open on GitHub"
             onClick={() => open(`https://github.com/${pr.repo}/pull/${pr.number}`)}
           >
-            <ExternalIcon />
+            <ExternalLink size={14} />
           </button>
           {pr.ciStatus === "failure" && onRerun && (
             <button
               className={`card-btn${isRerunning ? " spin" : ""}`}
-              title={isRerunning ? "Rerun in progress" : "Rerun failed jobs"}
+              data-tip={isRerunning ? "Rerunning..." : "Rerun failed jobs"}
               onClick={() => onRerun(pr.id, pr.runId)}
               disabled={isRerunning}
             >
-              <RefreshIcon />
+              <Play size={14} fill="currentColor" />
             </button>
           )}
-          {showRerunAll && onRerunAll && (
-            <button
-              className="card-btn"
-              title={isRerunAllRunning ? "Rerun all in progress" : "Rerun all failed PRs"}
-              onClick={() => onRerunAll()}
-              disabled={isRerunAllRunning}
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-              >
-                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                <path d="M3 3v5h5" />
-                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
-                <path d="M16 16h5v5" />
-              </svg>
-            </button>
-          )}
-          <button className="card-btn danger" title="Stop tracking" onClick={() => onRemove()}>
-            <TrashIcon />
+          <button className="card-btn danger" data-tip="Remove" onClick={() => onRemove()}>
+            <Trash2 size={14} />
           </button>
         </div>
       </div>
@@ -633,6 +512,10 @@ function App() {
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem("theme") === "dark";
   });
+  const [viewMode, setViewMode] = useState<"card" | "table">(() => {
+    return (localStorage.getItem("pr_view_mode") as "card" | "table") || "card";
+  });
+  const [tableExpandedIds, setTableExpandedIds] = useState<Set<number>>(new Set());
   const [isFloating, setIsFloating] = useState(false);
   const [settings, setSettings] = useState<AppSettings>(() => loadSettings());
   const [showSettings, setShowSettings] = useState(false);
@@ -666,6 +549,37 @@ function App() {
     { label: settings.primaryCliLabel, template: settings.primaryCliTemplate },
     { label: settings.secondaryCliLabel, template: settings.secondaryCliTemplate },
   ];
+
+  const launchCliForJob = useCallback(
+    async (repo: string, number: number, job: CIJob) => {
+      const template = settings.primaryCliTemplate.trim();
+      if (!template) {
+        setStatusMsg("No CLI template configured. Check Settings.");
+        setTimeout(() => setStatusMsg(null), 3000);
+        return;
+      }
+      setStatusMsg(`Fetching logs for ${job.name}...`);
+      try {
+        const logs = job.jobId
+          ? await fetchJobLogs(repo, job.jobId, githubToken)
+          : "(no logs available)";
+        const context = `CI job "${job.name}" failed.\n\nLast 300 lines of log:\n${logs}`;
+        const prUrl = `https://github.com/${repo}/pull/${number}`;
+        await invoke("open_cli", {
+          commandTemplate: template,
+          context,
+          repo,
+          number,
+          prUrl,
+        });
+        setStatusMsg(null);
+      } catch (e) {
+        setStatusMsg(`Failed to launch CLI: ${e}`);
+        setTimeout(() => setStatusMsg(null), 3000);
+      }
+    },
+    [githubToken, settings.primaryCliTemplate]
+  );
 
   // Toggle body class for transparent background
   useEffect(() => {
@@ -770,10 +684,24 @@ function App() {
 
       const commits = await fetchRecentCommits(current.repo, branch, 60, githubToken);
 
-      // Parallel fetch CI for all commits
-      const ciResults = await Promise.all(
-        commits.map((c) => fetchCommitCI(current.repo, c.sha, githubToken).catch(() => null))
-      );
+      // Batch fetch CI in groups of 10 to avoid rate limiting
+      const ciResults: (Awaited<ReturnType<typeof fetchCommitCI>> | null)[] = new Array(
+        commits.length
+      ).fill(null);
+      const BATCH = 10;
+      for (let i = 0; i < commits.length; i += BATCH) {
+        if (repoHealthRef.current?.repo !== current.repo) return; // aborted
+        const batch = commits.slice(i, i + BATCH);
+        const results = await Promise.all(
+          batch.map((c) => fetchCommitCI(current.repo, c.sha, githubToken).catch(() => null))
+        );
+        results.forEach((r, j) => {
+          ciResults[i + j] = r;
+        });
+      }
+
+      if (repoHealthRef.current?.repo !== current.repo) return; // aborted
+
       const enriched: CommitHealth[] = commits.map((c, i) => ({
         ...c,
         ciStatus: ciResults[i]?.ciStatus ?? "pending",
@@ -799,20 +727,20 @@ function App() {
     }
   }, [githubToken]);
 
-  const handleSetRepo = useCallback(
-    (repo: string) => {
-      if (!repo) {
-        // Clear
-        setRepoHealth(null);
-        localStorage.removeItem("repo_health_target_v1");
-        return;
-      }
-      const cleaned = repo.replace(/^https?:\/\/github\.com\//, "").replace(/\/$/, "");
-      setRepoHealth({ repo: cleaned, defaultBranch: "", commits: [], isLoading: true });
-      // Will trigger fetch via effect
-    },
-    []
-  );
+  const handleSetRepo = useCallback((repo: string) => {
+    if (!repo) {
+      // Clear
+      healthFetchingRef.current = false;
+      repoHealthRef.current = null;
+      setRepoHealth(null);
+      localStorage.removeItem("repo_health_target_v1");
+      setActiveTab("prs");
+      return;
+    }
+    const cleaned = repo.replace(/^https?:\/\/github\.com\//, "").replace(/\/$/, "");
+    setRepoHealth({ repo: cleaned, defaultBranch: "", commits: [], isLoading: true });
+    // Will trigger fetch via effect
+  }, []);
 
   // Fetch health data when repo changes or on initial load
   useEffect(() => {
@@ -845,6 +773,11 @@ function App() {
     document.documentElement.setAttribute("data-theme", darkMode ? "dark" : "light");
     localStorage.setItem("theme", darkMode ? "dark" : "light");
   }, [darkMode]);
+
+  // Persist view mode
+  useEffect(() => {
+    localStorage.setItem("pr_view_mode", viewMode);
+  }, [viewMode]);
 
   // Ref so the auto-refresh interval always reads the latest PR list
   // without needing to re-create the interval on every state change
@@ -1112,12 +1045,7 @@ function App() {
         <header className="app-header">
           <div className="header-inner">
             <div className="logo">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
-                  fill="#24292f"
-                />
-              </svg>
+              <Github size={28} />
               <div>
                 <div className="logo-name">PR Tracker</div>
                 <div className="logo-sub">GitHub CI Monitor</div>
@@ -1165,79 +1093,54 @@ function App() {
               className={`btn-refresh${isRefreshing ? " spin" : ""}`}
               onClick={refreshAll}
               disabled={isRefreshing}
-              title="Refresh all"
+              data-tip="Refresh all"
             >
-              <RefreshIcon />
+              <RotateCw size={15} />
               Refresh
             </button>
+            {counts.failed > 0 && (
+              <button
+                className={`btn-rerun-all${isRerunAllRunning ? " spin" : ""}`}
+                onClick={rerunAllFailed}
+                disabled={isRerunAllRunning}
+                data-tip="Rerun all failed PRs"
+              >
+                <Zap size={15} fill="currentColor" />
+                {isRerunAllRunning ? "Rerunning..." : "Rerun All"}
+              </button>
+            )}
             <div className="mode-toggles">
+              <button
+                className={`theme-toggle${viewMode === "table" ? " view-active" : ""}`}
+                onClick={() => setViewMode(viewMode === "card" ? "table" : "card")}
+                data-tip={viewMode === "card" ? "Table view" : "Card view"}
+              >
+                {viewMode === "card" ? <LayoutList size={18} /> : <LayoutGrid size={18} />}
+              </button>
               <button
                 className="theme-toggle"
                 onClick={() => setShowSettings(true)}
-                title="Open settings"
+                data-tip="Settings"
               >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <circle cx="12" cy="12" r="3" />
-                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 .6 1.65 1.65 0 0 0-.33 1V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1-.6 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-.6-1 1.65 1.65 0 0 0-1-.33H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 8a1.65 1.65 0 0 0-.6-1 1.65 1.65 0 0 0-1-.33H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 2a1.65 1.65 0 0 0 1-.6 1.65 1.65 0 0 0 .33-1V0a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 12 1.6a1.65 1.65 0 0 0 1-.6 1.65 1.65 0 0 0 .33-1V0a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 19.4 2a1.65 1.65 0 0 0 .6 1 1.65 1.65 0 0 0 1 .33H21a2 2 0 1 1 0 4h-.09A1.65 1.65 0 0 0 19.4 8a1.65 1.65 0 0 0 .6 1 1.65 1.65 0 0 0 1 .33H21a2 2 0 1 1 0 4h-.09A1.65 1.65 0 0 0 19.4 15z" />
-                </svg>
+                <Settings size={18} />
               </button>
               <button
                 className="theme-toggle"
                 onClick={() => setDarkMode(!darkMode)}
-                title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+                data-tip={darkMode ? "Light mode" : "Dark mode"}
               >
-                {darkMode ? (
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <circle cx="12" cy="12" r="5" />
-                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-                  </svg>
-                ) : (
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-                  </svg>
-                )}
+                {darkMode ? <Sun size={18} /> : <Moon size={18} />}
               </button>
               <button
                 className="theme-toggle"
                 onClick={toggleFloating}
-                title={isFloating ? "Exit floating mode" : "Enter floating mode (always on top)"}
+                data-tip={isFloating ? "Exit floating" : "Floating mode"}
                 style={{
                   background: isFloating ? "var(--primary)" : undefined,
                   color: isFloating ? "white" : undefined,
                 }}
               >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <rect x="3" y="3" width="18" height="18" rx="2" />
-                  <path d="M9 3v18M3 9h18" />
-                </svg>
+                <PanelTop size={18} />
               </button>
             </div>
           </div>
@@ -1271,12 +1174,9 @@ function App() {
                   key={pr.id}
                   pr={pr}
                   onRemove={() => removePR(pr.id)}
-                  onJobClick={(job) => setLogModal({ repo: pr.repo, number: pr.number, job })}
+                  onJobClick={(job) => launchCliForJob(pr.repo, pr.number, job)}
                   onRerun={handleRerun}
-                  onRerunAll={undefined}
-                  showRerunAll={false}
                   isRerunning={isRerunAllRunning || Boolean(rerunningPrIds[pr.id])}
-                  isRerunAllRunning={isRerunAllRunning}
                 />
               ))}
               {repoHealth && repoHealth.commits.length > 0 && (
@@ -1313,13 +1213,7 @@ function App() {
             {statusMsg && <div className="status-toast">{statusMsg}</div>}
 
             {activeTab === "health" ? (
-              <HealthDashboard
-                health={repoHealth}
-                onSetRepo={handleSetRepo}
-                onJobClick={(repo, _commitSha, job) =>
-                  setLogModal({ repo, number: 0, job })
-                }
-              />
+              <HealthDashboard health={repoHealth} onSetRepo={handleSetRepo} />
             ) : (
               <>
                 {/* ── Add PR ── */}
@@ -1344,15 +1238,147 @@ function App() {
                 {prs.length === 0 ? (
                   <div className="empty-state" style={{ marginTop: "60px" }}>
                     <div className="empty-icon-wrap">
-                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
-                        <path
-                          d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
-                          fill="#24292f"
-                        />
-                      </svg>
+                      <Github size={48} strokeWidth={1} />
                     </div>
                     <p className="empty-title">No PRs tracked yet</p>
                     <p className="empty-desc">Paste a GitHub PR URL above to start tracking</p>
+                  </div>
+                ) : viewMode === "table" ? (
+                  <div className="pr-table-wrap">
+                    <table className="pr-table">
+                      <thead>
+                        <tr>
+                          <th className="pr-table-th-status"></th>
+                          <th>#</th>
+                          <th>Title</th>
+                          <th>Author</th>
+                          <th>Repo</th>
+                          <th>State</th>
+                          <th>Diff</th>
+                          <th>Updated</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {prs.map((pr) => (
+                          <tr
+                            key={pr.id}
+                            className={`pr-table-row status-${pr.ciStatus}`}
+                            onClick={() => {
+                              if (pr.ciJobs?.some((j) => j.status === "failure")) {
+                                const failedJob = pr.ciJobs.find((j) => j.status === "failure")!;
+                                launchCliForJob(pr.repo, pr.number, failedJob);
+                              }
+                            }}
+                          >
+                            <td className="pr-table-td-status">
+                              <StatusIndicator status={pr.isLoading ? "pending" : pr.ciStatus} />
+                            </td>
+                            <td>
+                              <a
+                                href={`https://github.com/${pr.repo}/pull/${pr.number}`}
+                                className="pr-number-link"
+                                onClick={(e) => e.stopPropagation()}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                {pr.number}
+                              </a>
+                            </td>
+                            <td className="pr-table-td-title">
+                              <span className={pr.isLoading ? "loading" : ""}>{pr.title}</span>
+                              {pr.ciJobs && pr.ciJobs.some((j) => j.status === "failure") && (
+                                <div className="job-chips" style={{ marginTop: "6px" }}>
+                                  {pr.ciJobs.filter((j) => j.status === "failure").length > 3 && (
+                                    <span
+                                      className="job-chip job-chip-toggle"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setTableExpandedIds((prev) => {
+                                          const next = new Set(prev);
+                                          if (next.has(pr.id)) next.delete(pr.id);
+                                          else next.add(pr.id);
+                                          return next;
+                                        });
+                                      }}
+                                      style={{ cursor: "pointer" }}
+                                    >
+                                      {tableExpandedIds.has(pr.id)
+                                        ? "▼ Collapse"
+                                        : `▲ +${pr.ciJobs.filter((j) => j.status === "failure").length - 3}`}
+                                    </span>
+                                  )}
+                                  {pr.ciJobs
+                                    .filter((j) => j.status === "failure")
+                                    .slice(0, tableExpandedIds.has(pr.id) ? undefined : 3)
+                                    .map((job, i) => (
+                                      <span
+                                        key={i}
+                                        className="job-chip job-chip-failure"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          launchCliForJob(pr.repo, pr.number, job);
+                                        }}
+                                        style={{ cursor: "pointer" }}
+                                        data-tip="Click to view AI analysis"
+                                      >
+                                        {job.name}
+                                      </span>
+                                    ))}
+                                </div>
+                              )}
+                            </td>
+                            <td className="pr-table-td-author">@{pr.author}</td>
+                            <td className="pr-table-td-repo" title={pr.repo}>
+                              {pr.repo}
+                            </td>
+                            <td>
+                              <span className={`pr-state state-${pr.state}`}>{pr.state}</span>
+                            </td>
+                            <td className="pr-table-td-diff">
+                              {pr.additions !== undefined && (
+                                <span className="pr-diff">
+                                  <span className="diff-add">+{pr.additions}</span>
+                                  <span className="diff-del">-{pr.deletions}</span>
+                                </span>
+                              )}
+                            </td>
+                            <td className="pr-table-td-time">{pr.lastUpdated}</td>
+                            <td
+                              className="pr-table-td-actions"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <button
+                                className="card-btn"
+                                data-tip="Open on GitHub"
+                                onClick={() =>
+                                  open(`https://github.com/${pr.repo}/pull/${pr.number}`)
+                                }
+                              >
+                                <ExternalLink size={14} />
+                              </button>
+                              {pr.ciStatus === "failure" && (
+                                <button
+                                  className={`card-btn${rerunningPrIds[pr.id] ? " spin" : ""}`}
+                                  data-tip="Rerun failed jobs"
+                                  onClick={() => handleRerun(pr.id, pr.runId)}
+                                  disabled={Boolean(rerunningPrIds[pr.id])}
+                                >
+                                  <Play size={14} fill="currentColor" />
+                                </button>
+                              )}
+                              <button
+                                className="card-btn card-btn-remove"
+                                data-tip="Remove"
+                                onClick={() => removePR(pr.id)}
+                              >
+                                <X size={14} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 ) : (
                   <div className="pr-area">
@@ -1363,21 +1389,14 @@ function App() {
                           <span className="repo-count">{repoPRs.length}</span>
                         </div>
                         <div className="repo-cards">
-                          {repoPRs.map((pr, idx) => (
+                          {repoPRs.map((pr) => (
                             <PRCard
                               key={pr.id}
                               pr={pr}
                               onRemove={() => removePR(pr.id)}
-                              onJobClick={(job) =>
-                                setLogModal({ repo: pr.repo, number: pr.number, job })
-                              }
+                              onJobClick={(job) => launchCliForJob(pr.repo, pr.number, job)}
                               onRerun={handleRerun}
-                              onRerunAll={rerunAllFailed}
-                              showRerunAll={
-                                idx === 0 && repoPRs.some((p) => p.ciStatus === "failure")
-                              }
                               isRerunning={isRerunAllRunning || Boolean(rerunningPrIds[pr.id])}
-                              isRerunAllRunning={isRerunAllRunning}
                             />
                           ))}
                         </div>
@@ -1416,4 +1435,40 @@ function App() {
   );
 }
 
-export default App;
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { error: Error | null }
+> {
+  state: { error: Error | null } = { error: null };
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ padding: 40, color: "red", fontFamily: "monospace", whiteSpace: "pre-wrap" }}>
+          <h2>App crashed</h2>
+          <p>{this.state.error.message}</p>
+          <pre>{this.state.error.stack}</pre>
+          <button
+            onClick={() => this.setState({ error: null })}
+            style={{ marginTop: 16, padding: "8px 16px" }}
+          >
+            Try Again
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function AppWithErrorBoundary() {
+  return (
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
+  );
+}
+
+export default AppWithErrorBoundary;

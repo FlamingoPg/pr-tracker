@@ -13,36 +13,51 @@ function defaultSettings(): AppSettings {
   return {
     githubToken: "",
     minimaxApiKey: "",
-    primaryCliLabel: "Claude CLI",
-    primaryCliTemplate: "claude -p {context}",
-    secondaryCliLabel: "Kimi CLI",
-    secondaryCliTemplate: "kimi -y -p {context}",
+    primaryCliLabel: "Codex",
+    primaryCliTemplate: "codex {context}",
+    secondaryCliLabel: "",
+    secondaryCliTemplate: "",
   };
 }
 
 function normalizeSettings(input: Partial<AppSettings> | null | undefined): AppSettings {
   const defaults = defaultSettings();
-  const primaryCliTemplate = input?.primaryCliTemplate ?? defaults.primaryCliTemplate;
-  const secondaryCliTemplate = input?.secondaryCliTemplate ?? defaults.secondaryCliTemplate;
+  let primaryCliLabel =
+    (input?.primaryCliLabel || defaults.primaryCliLabel).trim() || defaults.primaryCliLabel;
+  let primaryCliTemplate = (input?.primaryCliTemplate ?? defaults.primaryCliTemplate).trim();
+  let secondaryCliLabel =
+    (input?.secondaryCliLabel || defaults.secondaryCliLabel).trim() || defaults.secondaryCliLabel;
+  let secondaryCliTemplate = (input?.secondaryCliTemplate ?? defaults.secondaryCliTemplate).trim();
+
+  // Migrate old defaults to Codex
+  if (primaryCliTemplate === "claude -p {context}") {
+    primaryCliLabel = defaults.primaryCliLabel;
+    primaryCliTemplate = defaults.primaryCliTemplate;
+  }
+  if (secondaryCliTemplate === "kimi -y -p {context}") {
+    secondaryCliLabel = defaults.secondaryCliLabel;
+    secondaryCliTemplate = defaults.secondaryCliTemplate;
+  }
 
   return {
     githubToken: (input?.githubToken || defaults.githubToken).trim(),
     minimaxApiKey: (input?.minimaxApiKey || defaults.minimaxApiKey).trim(),
-    primaryCliLabel:
-      (input?.primaryCliLabel || defaults.primaryCliLabel).trim() || defaults.primaryCliLabel,
-    primaryCliTemplate: primaryCliTemplate.trim(),
-    secondaryCliLabel:
-      (input?.secondaryCliLabel || defaults.secondaryCliLabel).trim() || defaults.secondaryCliLabel,
-    secondaryCliTemplate: secondaryCliTemplate.trim(),
+    primaryCliLabel,
+    primaryCliTemplate,
+    secondaryCliLabel,
+    secondaryCliTemplate,
   };
 }
 
 export function loadSettings(): AppSettings {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return normalizeSettings(undefined);
-    const parsed = JSON.parse(raw) as Partial<AppSettings>;
-    return normalizeSettings(parsed);
+    const result = raw
+      ? normalizeSettings(JSON.parse(raw) as Partial<AppSettings>)
+      : normalizeSettings(undefined);
+    // Persist migration results back to localStorage
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(result));
+    return result;
   } catch {
     return normalizeSettings(undefined);
   }

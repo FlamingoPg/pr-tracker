@@ -1,13 +1,23 @@
 import { useState, useMemo } from "react";
+import { open } from "@tauri-apps/plugin-shell";
 import { CommitHealth, formatTimeAgo } from "../github";
 
-const COLS = 10;
+const COLS = 15;
 
 // AMD patterns — these are NOT NV GPU jobs even if name contains "gpu"
 const AMD_PATTERNS = [/\bamd\b/i, /\brocm\b/i, /\bmi\d/i, /\bradeon\b/i, /\bhip\b/i];
 
 // NV-specific patterns
-const NV_PATTERNS = [/\bnv\b/i, /nvidia/i, /\bcuda\b/i, /\ba100\b/i, /\bh100\b/i, /\bv100\b/i, /\bl40/i, /\bt4\b/i];
+const NV_PATTERNS = [
+  /\bnv\b/i,
+  /nvidia/i,
+  /\bcuda\b/i,
+  /\ba100\b/i,
+  /\bh100\b/i,
+  /\bv100\b/i,
+  /\bl40/i,
+  /\bt4\b/i,
+];
 
 /** Returns true only for NVIDIA GPU jobs. AMD gpu-xxx jobs are excluded. */
 export function isGpuJob(name: string): boolean {
@@ -70,12 +80,21 @@ export function MiniHeatmap({ commits }: MiniProps) {
           GPU {gpuPassRate}%
         </span>
         {gpuFails > 0 && (
-          <span className="mini-heatmap-fails">{gpuFails} GPU fail{gpuFails > 1 ? "s" : ""}</span>
+          <span className="mini-heatmap-fails">
+            {gpuFails} GPU fail{gpuFails > 1 ? "s" : ""}
+          </span>
         )}
       </div>
-      <div className="mini-heatmap-grid" style={{ gridTemplateColumns: `repeat(${MINI_COLS}, 1fr)` }}>
+      <div
+        className="mini-heatmap-grid"
+        style={{ gridTemplateColumns: `repeat(${MINI_COLS}, 1fr)` }}
+      >
         {recent.map((c, i) => (
-          <div key={c.sha} className={`mini-heatmap-cell heatmap-${statuses[i]}`} title={`${c.shortSha} · ${STATUS_LABEL[statuses[i]]}`} />
+          <div
+            key={c.sha}
+            className={`mini-heatmap-cell heatmap-${statuses[i]}`}
+            title={`${c.shortSha} · ${STATUS_LABEL[statuses[i]]}`}
+          />
         ))}
       </div>
     </div>
@@ -86,10 +105,10 @@ export function MiniHeatmap({ commits }: MiniProps) {
 
 interface Props {
   commits: CommitHealth[];
-  onCommitClick?: (commit: CommitHealth) => void;
+  repo: string;
 }
 
-export function CIHeatmap({ commits, onCommitClick }: Props) {
+export function CIHeatmap({ commits, repo }: Props) {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
 
   const ordered = useMemo(() => [...commits].reverse(), [commits]);
@@ -113,15 +132,14 @@ export function CIHeatmap({ commits, onCommitClick }: Props) {
       <div className="ci-heatmap" style={{ gridTemplateColumns: `repeat(${COLS}, 1fr)` }}>
         {ordered.map((c, i) => {
           const st = statuses[i];
-          const clickable = st === "gpu-fail" || st === "gpu-pass";
           return (
             <div
               key={c.sha}
               className={`heatmap-cell heatmap-${st}${hoveredIdx === i ? " heatmap-hover" : ""}`}
               onMouseEnter={() => setHoveredIdx(i)}
               onMouseLeave={() => setHoveredIdx(null)}
-              onClick={() => clickable && onCommitClick?.(c)}
-              style={{ cursor: clickable ? "pointer" : "default" }}
+              onClick={() => open(`https://github.com/${repo}/commit/${c.sha}`)}
+              style={{ cursor: "pointer" }}
             >
               {hoveredIdx === i && (
                 <div className="heatmap-tooltip">
@@ -134,12 +152,14 @@ export function CIHeatmap({ commits, onCommitClick }: Props) {
                   <span className="heatmap-tooltip-msg">{c.message}</span>
                   {st === "gpu-pass" && (
                     <span className="heatmap-tooltip-gpu-note">
-                      GPU CI OK — {c.ciJobs.filter((j) => j.status === "failure").length} non-GPU job(s) failed
+                      GPU CI OK — {c.ciJobs.filter((j) => j.status === "failure").length} non-GPU
+                      job(s) failed
                     </span>
                   )}
                   {st === "gpu-fail" && (
                     <span className="heatmap-tooltip-gpu-note">
-                      {c.ciJobs.filter((j) => j.status === "failure" && isGpuJob(j.name)).length} GPU job(s) failed
+                      {c.ciJobs.filter((j) => j.status === "failure" && isGpuJob(j.name)).length}{" "}
+                      GPU job(s) failed
                     </span>
                   )}
                   <span className="heatmap-tooltip-time">{formatTimeAgo(c.date)}</span>
@@ -156,6 +176,32 @@ export function CIHeatmap({ commits, onCommitClick }: Props) {
         <span className="ci-heatmap-footer-label">← older</span>
         <span className="ci-heatmap-footer-label">newer →</span>
       </div>
+
+      {/* Recent GPU failures */}
+      {(() => {
+        const gpuFailures = commits
+          .filter((c) => deriveHeatmapStatus(c) === "gpu-fail")
+          .slice(0, 8);
+        if (gpuFailures.length === 0) return null;
+        return (
+          <div className="heatmap-recent">
+            <div className="heatmap-recent-title">Recent GPU Failures</div>
+            {gpuFailures.map((c) => (
+              <div
+                key={c.sha}
+                className="heatmap-recent-row heatmap-recent-fail"
+                onClick={() => open(`https://github.com/${repo}/commit/${c.sha}`)}
+                style={{ cursor: "pointer" }}
+              >
+                <span className="heatmap-recent-dot heatmap-gpu-fail" />
+                <span className="heatmap-recent-sha">{c.shortSha}</span>
+                <span className="heatmap-recent-msg">{c.message}</span>
+                <span className="heatmap-recent-time">{formatTimeAgo(c.date)}</span>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
     </div>
   );
 }
