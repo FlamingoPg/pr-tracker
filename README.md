@@ -1,3 +1,5 @@
+
+
 # PR Tracker
 
 PR Tracker is a desktop app built with Tauri + React for monitoring GitHub PR CI status.
@@ -111,7 +113,6 @@ npm run tauri -- dev
 ## Build
 
 ```bash
-npm run build
 npm run tauri -- build
 ```
 
